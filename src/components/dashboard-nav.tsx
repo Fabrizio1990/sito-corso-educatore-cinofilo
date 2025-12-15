@@ -61,6 +61,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/tutor/materials" className="text-gray-600 hover:text-gray-900">
                     Materiali
                   </Link>
+                  <Link href="/tutor/quizzes" className="text-gray-600 hover:text-gray-900">
+                    Quiz
+                  </Link>
                 </>
               ) : (
                 <>
