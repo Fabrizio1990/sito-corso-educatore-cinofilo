@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(jq:*)",
+      "Bash(claude-agent coder \"Integrate the i18n system into App.tsx file.\n\n**Current situation:**\n- App.tsx is located at: /Users/fabriziocoppolecchia/Desktop/Progetti/miei_personali/linkedin_journal_mobile/App.tsx\n- i18n configuration is at: /Users/fabriziocoppolecchia/Desktop/Progetti/miei_personali/linkedin_journal_mobile/src/i18n/index.ts\n- The i18n system is already configured with language detection via AsyncStorage, English and Italian translations, and react-i18next integration\n\n**Task:**\nAdd the i18n import to App.tsx to initialize the i18n system when the app starts.\n\n1. Add this import at the top of App.tsx (after other imports): import ''./src/i18n'';\n2. This should be placed near the top with other imports, around line 12-13 would be appropriate (after the DownloadProvider import)\n3. No other changes are needed - the import alone will initialize the i18n system due to the side effects in the i18n/index.ts file\n\n**Important:**\n- Just add the import, don''t wrap the component or make other changes\n- The i18n configuration uses useSuspense: false, so no Suspense wrapper is needed\n- Ensure the import path is correct: ''./src/i18n'' (not ''./src/i18n/index.ts'')\n\nReport back with:\n- The exact location where you added the import\n- Confirmation that the file was edited successfully\")",
+      "Bash(npx:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
