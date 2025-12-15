@@ -89,7 +89,7 @@ export default async function StudentMaterialsPage() {
     }
 
     const courseData = materialsByCourse.get(courseId)!
-    const category = (material as unknown as { material_categories: { id: string; name: string } | null }).material_categories
+    const category = material.material_categories as { id: string; name: string } | null
 
     if (category) {
       if (!courseData.categories.has(category.id)) {
@@ -98,9 +98,9 @@ export default async function StudentMaterialsPage() {
           materials: [],
         })
       }
-      courseData.categories.get(category.id)!.materials.push(material as unknown as Material)
+      courseData.categories.get(category.id)!.materials.push(material as Material)
     } else {
-      courseData.uncategorized.push(material as unknown as Material)
+      courseData.uncategorized.push(material as Material)
     }
   })
 

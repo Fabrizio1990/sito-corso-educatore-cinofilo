@@ -42,10 +42,6 @@ interface UploadMaterialDialogProps {
   categories?: Category[]
 }
 
-// Helper to bypass TypeScript for new tables not yet in generated types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fromTable = (supabase: ReturnType<typeof createClient>, table: string) => (supabase as any).from(table)
-
 export function UploadMaterialDialog({ courses, categories: initialCategories }: UploadMaterialDialogProps) {
   const [open, setOpen] = useState(false)
   const [materialType, setMaterialType] = useState<'file' | 'link'>('file')
@@ -81,7 +77,8 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
   }, [courseId])
 
   const fetchCategories = async () => {
-    const { data } = await fromTable(supabase, 'material_categories')
+    const { data } = await supabase
+      .from('material_categories')
       .select('id, name')
       .eq('course_id', courseId)
       .order('sort_order')
@@ -92,7 +89,8 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim() || !courseId) return
 
-    const { data, error } = await fromTable(supabase, 'material_categories')
+    const { data, error } = await supabase
+      .from('material_categories')
       .insert({
         course_id: courseId,
         name: newCategoryName.trim(),
@@ -168,15 +166,14 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
     setError(null)
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error: dbError } = await (supabase.from('materials').insert as any)({
+      const { error: dbError } = await supabase.from('materials').insert({
         course_id: courseId,
         category_id: categoryId || null,
         title: linkTitle,
         description: linkDescription || null,
         link_url: linkUrl,
         material_type: 'link',
-        file_path: null,
+        file_path: '', // Empty for links
         file_type: null,
       })
 
@@ -236,8 +233,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
         const fileUrl = signedUrlData?.signedUrl || publicUrl
 
         // Insert material record
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { error: dbError } = await (supabase.from('materials').insert as any)({
+        const { error: dbError } = await supabase.from('materials').insert({
           course_id: courseId,
           category_id: categoryId || null,
           title: fileItem.title,

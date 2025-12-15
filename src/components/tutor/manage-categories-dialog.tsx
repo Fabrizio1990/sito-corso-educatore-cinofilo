@@ -26,16 +26,12 @@ import { toast } from 'sonner'
 interface Category {
   id: string
   name: string
-  sort_order: number
+  sort_order: number | null
 }
 
 interface ManageCategoriesDialogProps {
   courses: { id: string; name: string }[]
 }
-
-// Helper to bypass TypeScript for new tables not yet in generated types
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const fromTable = (supabase: ReturnType<typeof createClient>, table: string) => (supabase as any).from(table)
 
 export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps) {
   const [open, setOpen] = useState(false)
@@ -57,7 +53,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
   }, [courseId])
 
   const fetchCategories = async () => {
-    const { data } = await fromTable(supabase, 'material_categories')
+    const { data } = await supabase
+      .from('material_categories')
       .select('id, name, sort_order')
       .eq('course_id', courseId)
       .order('sort_order')
@@ -69,7 +66,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
     if (!newCategoryName.trim() || !courseId) return
 
     setLoading(true)
-    const { error } = await fromTable(supabase, 'material_categories')
+    const { error } = await supabase
+      .from('material_categories')
       .insert({
         course_id: courseId,
         name: newCategoryName.trim(),
@@ -91,7 +89,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
     if (!editingName.trim()) return
 
     setLoading(true)
-    const { error } = await fromTable(supabase, 'material_categories')
+    const { error } = await supabase
+      .from('material_categories')
       .update({ name: editingName.trim() })
       .eq('id', id)
 
@@ -113,7 +112,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
     }
 
     setLoading(true)
-    const { error } = await fromTable(supabase, 'material_categories')
+    const { error } = await supabase
+      .from('material_categories')
       .delete()
       .eq('id', id)
 
@@ -135,8 +135,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
     newCategories[index - 1] = temp
 
     // Update sort_order for both
-    await fromTable(supabase, 'material_categories').update({ sort_order: index - 1 }).eq('id', temp.id)
-    await fromTable(supabase, 'material_categories').update({ sort_order: index }).eq('id', newCategories[index].id)
+    await supabase.from('material_categories').update({ sort_order: index - 1 }).eq('id', temp.id)
+    await supabase.from('material_categories').update({ sort_order: index }).eq('id', newCategories[index].id)
 
     fetchCategories()
   }
@@ -149,8 +149,8 @@ export function ManageCategoriesDialog({ courses }: ManageCategoriesDialogProps)
     newCategories[index + 1] = temp
 
     // Update sort_order for both
-    await fromTable(supabase, 'material_categories').update({ sort_order: index + 1 }).eq('id', temp.id)
-    await fromTable(supabase, 'material_categories').update({ sort_order: index }).eq('id', newCategories[index].id)
+    await supabase.from('material_categories').update({ sort_order: index + 1 }).eq('id', temp.id)
+    await supabase.from('material_categories').update({ sort_order: index }).eq('id', newCategories[index].id)
 
     fetchCategories()
   }

@@ -50,7 +50,7 @@ export default async function TutorMaterialsPage() {
     .order('name')
 
   // Get all categories with their materials
-  const { data: categories } = await (supabase as unknown as { from: (table: string) => { select: (query: string) => { order: (col: string) => Promise<{ data: Category[] | null }> } } })
+  const { data: categories } = await supabase
     .from('material_categories')
     .select(`
       id,
@@ -92,7 +92,7 @@ export default async function TutorMaterialsPage() {
     }
 
     const courseData = materialsByCourse.get(courseId)!
-    const category = (material as unknown as { material_categories: { id: string; name: string } | null }).material_categories
+    const category = material.material_categories as { id: string; name: string } | null
 
     if (category) {
       if (!courseData.categories.has(category.id)) {
@@ -101,9 +101,9 @@ export default async function TutorMaterialsPage() {
           materials: [],
         })
       }
-      courseData.categories.get(category.id)!.materials.push(material as unknown as Material)
+      courseData.categories.get(category.id)!.materials.push(material as Material)
     } else {
-      courseData.uncategorized.push(material as unknown as Material)
+      courseData.uncategorized.push(material as Material)
     }
   })
 

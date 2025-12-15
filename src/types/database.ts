@@ -184,35 +184,86 @@ export type Database = {
           },
         ]
       }
+      material_categories: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          name: string
+          sort_order: number | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "material_categories_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
+          category_id: string | null
           course_id: string
           created_at: string | null
           description: string | null
           file_path: string
           file_type: string | null
           id: string
+          link_url: string | null
+          material_type: string | null
           title: string
         }
         Insert: {
+          category_id?: string | null
           course_id: string
           created_at?: string | null
           description?: string | null
           file_path: string
           file_type?: string | null
           id?: string
+          link_url?: string | null
+          material_type?: string | null
           title: string
         }
         Update: {
+          category_id?: string | null
           course_id?: string
           created_at?: string | null
           description?: string | null
           file_path?: string
           file_type?: string | null
           id?: string
+          link_url?: string | null
+          material_type?: string | null
           title?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "materials_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "material_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "materials_course_id_fkey"
             columns: ["course_id"]
@@ -353,6 +404,7 @@ export type Course = Tables<'courses'>
 export type Class = Tables<'classes'>
 export type Lesson = Tables<'lessons'>
 export type Material = Tables<'materials'>
+export type MaterialCategory = Tables<'material_categories'>
 export type Quiz = Tables<'quizzes'>
 export type QuizSubmission = Tables<'quiz_submissions'>
 export type ClassStudent = Tables<'class_students'>
