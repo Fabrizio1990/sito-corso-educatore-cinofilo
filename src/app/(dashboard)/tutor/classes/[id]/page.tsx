@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { CopyInviteCode } from '@/components/tutor/copy-invite-code'
+import { ClassQuizSubmissions } from '@/components/tutor/class-quiz-submissions'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -56,6 +57,49 @@ export default async function ClassDetailPage({ params }: PageProps) {
   const course = classData.courses as { id: string; name: string; description: string | null }
   const isActive = classData.end_date ? new Date(classData.end_date) >= new Date() : true
 
+  // Get student IDs for this class
+  const studentIds = students.map(s => s.profiles.id)
+
+  // Get quizzes for this course with submissions only from class students
+  const { data: quizzes } = await supabase
+    .from('quizzes')
+    .select(`
+      id,
+      title,
+      question,
+      quiz_submissions (
+        id,
+        answer,
+        submitted_at,
+        tutor_feedback,
+        profiles (id, full_name, email)
+      )
+    `)
+    .eq('course_id', course.id)
+    .order('created_at', { ascending: false })
+
+  // Filter submissions to only include students from this class
+  const quizzesWithClassSubmissions = (quizzes || []).map(quiz => ({
+    ...quiz,
+    submissions: (quiz.quiz_submissions || [])
+      .filter((sub: { profiles: { id: string } | null }) =>
+        sub.profiles && studentIds.includes(sub.profiles.id)
+      )
+      .map((sub: { id: string; answer: string; submitted_at: string | null; tutor_feedback: string | null; profiles: { id: string; full_name: string; email: string } }) => ({
+        id: sub.id,
+        answer: sub.answer,
+        submitted_at: sub.submitted_at,
+        tutor_feedback: sub.tutor_feedback,
+        profiles: sub.profiles
+      }))
+  }))
+
+  // Count pending submissions
+  const pendingSubmissionsCount = quizzesWithClassSubmissions.reduce(
+    (acc, quiz) => acc + quiz.submissions.filter((s: { tutor_feedback: string | null }) => !s.tutor_feedback).length,
+    0
+  )
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -75,7 +119,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
       </div>
 
       {/* Info Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Studenti iscritti</CardDescription>
@@ -90,6 +134,16 @@ export default async function ClassDetailPage({ params }: PageProps) {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{lessons?.length || 0}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Quiz da valutare</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className={`text-3xl font-bold ${pendingSubmissionsCount > 0 ? 'text-orange-600' : ''}`}>
+              {pendingSubmissionsCount}
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -164,6 +218,24 @@ export default async function ClassDetailPage({ params }: PageProps) {
           ) : (
             <p className="text-gray-500 text-center py-4">Nessuna lezione ancora creata</p>
           )}
+        </CardContent>
+      </Card>
+
+      {/* Quiz Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            Quiz
+            {pendingSubmissionsCount > 0 && (
+              <Badge variant="destructive">{pendingSubmissionsCount} da valutare</Badge>
+            )}
+          </CardTitle>
+          <CardDescription>
+            Risposte ai quiz degli studenti di questa classe
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ClassQuizSubmissions quizzes={quizzesWithClassSubmissions} />
         </CardContent>
       </Card>
 

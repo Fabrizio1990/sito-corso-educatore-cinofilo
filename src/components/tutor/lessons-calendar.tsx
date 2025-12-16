@@ -19,6 +19,7 @@ const MONTHS_IT = [
 export function LessonsCalendar({ classId, lessons }: LessonsCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
   const year = currentDate.getFullYear()
@@ -60,9 +61,20 @@ export function LessonsCalendar({ classId, lessons }: LessonsCalendarProps) {
     setCurrentDate(new Date())
   }
 
-  const handleDayClick = (day: number) => {
+  const handleDayClick = (day: number, e: React.MouseEvent) => {
+    // Only handle clicks on the day cell itself, not on lessons
+    if ((e.target as HTMLElement).closest('[data-lesson]')) return
+
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     setSelectedDate(dateStr)
+    setSelectedLesson(null)
+    setDialogOpen(true)
+  }
+
+  const handleLessonClick = (lesson: Lesson, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setSelectedLesson(lesson)
+    setSelectedDate(null)
     setDialogOpen(true)
   }
 
@@ -133,7 +145,7 @@ export function LessonsCalendar({ classId, lessons }: LessonsCalendarProps) {
             return (
               <div
                 key={day}
-                onClick={() => handleDayClick(day)}
+                onClick={(e) => handleDayClick(day, e)}
                 className={`
                   h-24 p-1 rounded border cursor-pointer transition-colors overflow-hidden
                   ${dayIsToday ? 'border-blue-500 border-2 bg-blue-50' : 'border-gray-200'}
@@ -147,11 +159,15 @@ export function LessonsCalendar({ classId, lessons }: LessonsCalendarProps) {
                   {dayLessons.slice(0, 2).map(lesson => (
                     <div
                       key={lesson.id}
+                      data-lesson
+                      onClick={(e) => handleLessonClick(lesson, e)}
                       className={`
-                        text-xs px-1 py-0.5 rounded truncate
-                        ${dayIsPast ? 'bg-gray-200 text-gray-600' : 'bg-blue-100 text-blue-800'}
+                        text-xs px-1 py-0.5 rounded truncate cursor-pointer
+                        ${dayIsPast
+                          ? 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200'}
                       `}
-                      title={`${lesson.title}${lesson.start_time ? ` - ${formatTimeRange(lesson)}` : ''}`}
+                      title={`Clicca per modificare: ${lesson.title}${lesson.start_time ? ` - ${formatTimeRange(lesson)}` : ''}`}
                     >
                       {lesson.start_time && (
                         <span className="font-medium">{formatTimeRange(lesson)} </span>
@@ -189,6 +205,7 @@ export function LessonsCalendar({ classId, lessons }: LessonsCalendarProps) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         selectedDate={selectedDate}
+        lesson={selectedLesson}
       />
     </>
   )
