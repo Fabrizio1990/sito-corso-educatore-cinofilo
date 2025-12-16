@@ -1,11 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { CreateLessonDialog } from '@/components/tutor/create-lesson-dialog'
-import { DeleteLessonButton } from '@/components/tutor/delete-lesson-button'
+import { CreateLessonButton } from '@/components/tutor/create-lesson-button'
+import { LessonsCalendar } from '@/components/tutor/lessons-calendar'
+import { LessonsList } from '@/components/tutor/lessons-list'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -50,7 +48,18 @@ export default async function ClassLessonsPage({ params }: PageProps) {
     .order('lesson_date', { ascending: true })
 
   const course = classData.courses as { id: string; name: string }
-  const today = new Date().toISOString().split('T')[0]
+
+  // Map lessons to the expected format
+  const formattedLessons = (lessons || []).map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    lesson_date: lesson.lesson_date,
+    start_time: lesson.start_time,
+    end_time: lesson.end_time,
+    location: lesson.location,
+    description: lesson.description,
+    required_prep: lesson.required_prep,
+  }))
 
   return (
     <div className="space-y-6">
@@ -63,78 +72,14 @@ export default async function ClassLessonsPage({ params }: PageProps) {
           <h1 className="text-3xl font-bold">Lezioni</h1>
           <p className="text-gray-600">{course?.name} - {classData.edition_name}</p>
         </div>
-        <CreateLessonDialog classId={id} />
+        <CreateLessonButton classId={id} />
       </div>
 
-      {/* Lessons List */}
-      {lessons && lessons.length > 0 ? (
-        <div className="space-y-4">
-          {lessons.map((lesson) => {
-            const isPast = lesson.lesson_date < today
-            const isToday = lesson.lesson_date === today
+      {/* Calendar View */}
+      <LessonsCalendar classId={id} lessons={formattedLessons} />
 
-            return (
-              <Card key={lesson.id} className={isPast ? 'bg-gray-50' : ''}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <CardTitle className="text-lg">{lesson.title}</CardTitle>
-                        {isToday && <Badge variant="default">Oggi</Badge>}
-                        {isPast && <Badge variant="secondary">Passata</Badge>}
-                      </div>
-                      <CardDescription>
-                        {new Date(lesson.lesson_date).toLocaleDateString('it-IT', {
-                          weekday: 'long',
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric',
-                        })}
-                        {lesson.lesson_time && ` alle ${lesson.lesson_time.slice(0, 5)}`}
-                      </CardDescription>
-                    </div>
-                    <div className="flex gap-2">
-                      <Link href={`/tutor/classes/${id}/lessons/${lesson.id}/edit`}>
-                        <Button variant="outline" size="sm">Modifica</Button>
-                      </Link>
-                      <DeleteLessonButton lessonId={lesson.id} lessonTitle={lesson.title} />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {lesson.location && (
-                      <div>
-                        <p className="text-sm text-gray-500">Luogo</p>
-                        <p className="font-medium">{lesson.location}</p>
-                      </div>
-                    )}
-                    {lesson.description && (
-                      <div className="md:col-span-2">
-                        <p className="text-sm text-gray-500">Descrizione</p>
-                        <p>{lesson.description}</p>
-                      </div>
-                    )}
-                    {lesson.required_prep && (
-                      <div className="md:col-span-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                        <p className="text-sm text-yellow-800 font-medium">Cosa portare:</p>
-                        <p className="text-yellow-700">{lesson.required_prep}</p>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-      ) : (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-gray-500 mb-4">Nessuna lezione ancora creata per questa classe</p>
-            <CreateLessonDialog classId={id} />
-          </CardContent>
-        </Card>
-      )}
+      {/* Lessons List */}
+      <LessonsList classId={id} lessons={formattedLessons} />
     </div>
   )
 }

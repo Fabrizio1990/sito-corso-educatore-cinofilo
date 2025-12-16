@@ -133,7 +133,10 @@ function SignupForm() {
           </Button>
           <p className="text-sm text-center text-gray-600">
             Hai già un account?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline">
+            <Link
+              href={inviteCode ? `/login?invite=${inviteCode}` : '/login'}
+              className="text-blue-600 hover:underline"
+            >
               Accedi
             </Link>
           </p>

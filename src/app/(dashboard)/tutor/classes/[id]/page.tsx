@@ -141,7 +141,13 @@ export default async function ClassDetailPage({ params }: PageProps) {
                         day: 'numeric',
                         month: 'long',
                       })}
-                      {lesson.lesson_time && ` alle ${lesson.lesson_time.slice(0, 5)}`}
+                      {lesson.start_time && (
+                        <>
+                          {' dalle '}
+                          {lesson.start_time.slice(0, 5)}
+                          {lesson.end_time && ` alle ${lesson.end_time.slice(0, 5)}`}
+                        </>
+                      )}
                     </p>
                   </div>
                   {lesson.location && (

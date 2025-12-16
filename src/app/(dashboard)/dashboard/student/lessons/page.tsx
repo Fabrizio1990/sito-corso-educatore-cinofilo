@@ -45,7 +45,7 @@ export default async function StudentLessonsPage() {
     `)
     .in('class_id', classIds)
     .order('lesson_date', { ascending: true })
-    .order('lesson_time', { ascending: true })
+    .order('start_time', { ascending: true })
 
   const today = new Date().toISOString().split('T')[0]
   const upcomingLessons = lessons?.filter(l => l.lesson_date >= today) || []
@@ -84,10 +84,13 @@ export default async function StudentLessonsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4 text-sm">
-                    {lesson.lesson_time && (
+                    {lesson.start_time && (
                       <div>
                         <p className="text-gray-500">Orario</p>
-                        <p className="font-medium">{lesson.lesson_time.slice(0, 5)}</p>
+                        <p className="font-medium">
+                          {lesson.start_time.slice(0, 5)}
+                          {lesson.end_time && ` - ${lesson.end_time.slice(0, 5)}`}
+                        </p>
                       </div>
                     )}
                     {lesson.location && (

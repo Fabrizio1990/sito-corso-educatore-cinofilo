@@ -142,11 +142,12 @@ export type Database = {
           class_id: string
           created_at: string | null
           description: string | null
+          end_time: string | null
           id: string
           lesson_date: string
-          lesson_time: string | null
           location: string | null
           required_prep: string | null
+          start_time: string | null
           title: string
           updated_at: string | null
         }
@@ -154,11 +155,12 @@ export type Database = {
           class_id: string
           created_at?: string | null
           description?: string | null
+          end_time?: string | null
           id?: string
           lesson_date: string
-          lesson_time?: string | null
           location?: string | null
           required_prep?: string | null
+          start_time?: string | null
           title: string
           updated_at?: string | null
         }
@@ -166,11 +168,12 @@ export type Database = {
           class_id?: string
           created_at?: string | null
           description?: string | null
+          end_time?: string | null
           id?: string
           lesson_date?: string
-          lesson_time?: string | null
           location?: string | null
           required_prep?: string | null
+          start_time?: string | null
           title?: string
           updated_at?: string | null
         }

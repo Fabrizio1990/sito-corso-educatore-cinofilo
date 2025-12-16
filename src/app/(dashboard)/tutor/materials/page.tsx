@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { UploadMaterialDialog } from '@/components/tutor/upload-material-dialog'
-import { DeleteMaterialButton } from '@/components/tutor/delete-material-button'
 import { ManageCategoriesDialog } from '@/components/tutor/manage-categories-dialog'
+import { MaterialCard } from '@/components/tutor/material-card'
 
 interface Material {
   id: string
@@ -15,16 +15,10 @@ interface Material {
   link_url: string | null
   material_type: string | null
   category_id: string | null
+  course_id: string
   created_at: string
   courses: { name: string } | null
   material_categories: { id: string; name: string } | null
-}
-
-interface Category {
-  id: string
-  name: string
-  course_id: string
-  materials: Material[]
 }
 
 export default async function TutorMaterialsPage() {
@@ -48,17 +42,6 @@ export default async function TutorMaterialsPage() {
     .from('courses')
     .select('id, name')
     .order('name')
-
-  // Get all categories with their materials
-  const { data: categories } = await supabase
-    .from('material_categories')
-    .select(`
-      id,
-      name,
-      course_id,
-      courses (name)
-    `)
-    .order('sort_order')
 
   // Get all materials with category info
   const { data: materials } = await supabase
@@ -107,96 +90,6 @@ export default async function TutorMaterialsPage() {
     }
   })
 
-  const getFileIcon = (material: Material) => {
-    if (material.material_type === 'link') return '🔗'
-    const fileType = material.file_type
-    if (!fileType) return '📄'
-    if (fileType.includes('pdf')) return '📕'
-    if (fileType.includes('word') || fileType.includes('doc')) return '📘'
-    if (fileType.includes('excel') || fileType.includes('sheet')) return '📗'
-    if (fileType.includes('image')) return '🖼️'
-    if (fileType.includes('video')) return '🎬'
-    if (fileType.includes('audio')) return '🎵'
-    return '📄'
-  }
-
-  const getMaterialUrl = (material: Material) => {
-    return material.material_type === 'link' ? material.link_url : material.file_path
-  }
-
-  const getMaterialAction = (material: Material) => {
-    if (material.material_type === 'link') {
-      return (
-        <a
-          href={material.link_url || '#'}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-          </svg>
-          Apri link
-        </a>
-      )
-    }
-    return (
-      <a
-        href={material.file_path || '#'}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Scarica
-      </a>
-    )
-  }
-
-  const renderMaterialCard = (material: Material) => (
-    <Card key={material.id} className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <span className="text-2xl">{getFileIcon(material)}</span>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-base truncate">{material.title}</CardTitle>
-              <div className="flex gap-1 mt-1 flex-wrap">
-                {material.material_type === 'link' ? (
-                  <Badge variant="outline" className="text-xs">Link</Badge>
-                ) : material.file_type && (
-                  <Badge variant="secondary" className="text-xs">
-                    {material.file_type.split('/').pop()?.toUpperCase()}
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-          <DeleteMaterialButton
-            materialId={material.id}
-            materialTitle={material.title}
-            filePath={material.file_path}
-          />
-        </div>
-      </CardHeader>
-      <CardContent>
-        {material.description && (
-          <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-            {material.description}
-          </p>
-        )}
-        <div className="flex items-center justify-between">
-          {getMaterialAction(material)}
-          <p className="text-xs text-gray-400">
-            {new Date(material.created_at).toLocaleDateString('it-IT')}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  )
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -228,7 +121,9 @@ export default async function TutorMaterialsPage() {
                   </Badge>
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {catData.materials.map(renderMaterialCard)}
+                  {catData.materials.map((material) => (
+                    <MaterialCard key={material.id} material={material} />
+                  ))}
                 </div>
               </div>
             ))}
@@ -242,7 +137,9 @@ export default async function TutorMaterialsPage() {
                   </h3>
                 )}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {courseData.uncategorized.map(renderMaterialCard)}
+                  {courseData.uncategorized.map((material) => (
+                    <MaterialCard key={material.id} material={material} />
+                  ))}
                 </div>
               </div>
             )}

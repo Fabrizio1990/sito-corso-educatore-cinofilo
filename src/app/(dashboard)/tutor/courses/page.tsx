@@ -53,14 +53,9 @@ export default async function CoursesPage() {
                 <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                   {course.description || 'Nessuna descrizione'}
                 </p>
-                <div className="flex gap-2">
-                  <Link href={`/tutor/courses/${course.id}`}>
-                    <Button variant="outline" size="sm">Dettagli</Button>
-                  </Link>
-                  <Link href={`/tutor/courses/${course.id}/edit`}>
-                    <Button variant="ghost" size="sm">Modifica</Button>
-                  </Link>
-                </div>
+                <Link href={`/tutor/courses/${course.id}`}>
+                  <Button variant="outline" size="sm">Gestisci</Button>
+                </Link>
               </CardContent>
             </Card>
           ))}

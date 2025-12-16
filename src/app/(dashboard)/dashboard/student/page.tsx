@@ -54,7 +54,7 @@ export default async function StudentDashboard() {
       .in('class_id', classIds)
       .gte('lesson_date', new Date().toISOString().split('T')[0])
       .order('lesson_date', { ascending: true })
-      .order('lesson_time', { ascending: true })
+      .order('start_time', { ascending: true })
       .limit(1)
 
     nextLesson = lessons?.[0]
@@ -84,7 +84,13 @@ export default async function StudentDashboard() {
                     day: 'numeric',
                     month: 'long',
                   })}
-                  {nextLesson.lesson_time && ` alle ${nextLesson.lesson_time.slice(0, 5)}`}
+                  {nextLesson.start_time && (
+                    <>
+                      {' dalle '}
+                      {nextLesson.start_time.slice(0, 5)}
+                      {nextLesson.end_time && ` alle ${nextLesson.end_time.slice(0, 5)}`}
+                    </>
+                  )}
                 </p>
               </div>
               {nextLesson.location && (

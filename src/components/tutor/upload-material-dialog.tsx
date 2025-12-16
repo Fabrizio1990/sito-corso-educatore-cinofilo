@@ -40,12 +40,13 @@ interface FileToUpload {
 interface UploadMaterialDialogProps {
   courses: { id: string; name: string }[]
   categories?: Category[]
+  preselectedCourseId?: string
 }
 
-export function UploadMaterialDialog({ courses, categories: initialCategories }: UploadMaterialDialogProps) {
+export function UploadMaterialDialog({ courses, categories: initialCategories, preselectedCourseId }: UploadMaterialDialogProps) {
   const [open, setOpen] = useState(false)
   const [materialType, setMaterialType] = useState<'file' | 'link'>('file')
-  const [courseId, setCourseId] = useState('')
+  const [courseId, setCourseId] = useState(preselectedCourseId || '')
   const [categoryId, setCategoryId] = useState('')
   const [categories, setCategories] = useState<Category[]>(initialCategories || [])
   const [newCategoryName, setNewCategoryName] = useState('')
@@ -266,7 +267,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
 
   const resetForm = () => {
     setOpen(false)
-    setCourseId('')
+    setCourseId(preselectedCourseId || '')
     setCategoryId('')
     setMaterialType('file')
     setLinkUrl('')
@@ -334,21 +335,23 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
             </div>
 
             {/* Course Selection */}
-            <div className="grid gap-2">
-              <Label>Corso *</Label>
-              <Select value={courseId} onValueChange={setCourseId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona un corso" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!preselectedCourseId && (
+              <div className="grid gap-2">
+                <Label>Corso *</Label>
+                <Select value={courseId} onValueChange={setCourseId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona un corso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Category Selection */}
             {courseId && (
@@ -356,12 +359,15 @@ export function UploadMaterialDialog({ courses, categories: initialCategories }:
                 <Label>Categoria/Argomento</Label>
                 {!showNewCategory ? (
                   <div className="flex gap-2">
-                    <Select value={categoryId} onValueChange={setCategoryId}>
+                    <Select
+                      value={categoryId || 'none'}
+                      onValueChange={(val) => setCategoryId(val === 'none' ? '' : val)}
+                    >
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Nessuna categoria" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nessuna categoria</SelectItem>
+                        <SelectItem value="none">Nessuna categoria</SelectItem>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {cat.name}

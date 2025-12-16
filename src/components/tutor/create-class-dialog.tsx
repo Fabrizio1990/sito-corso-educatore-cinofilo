@@ -25,11 +25,12 @@ import {
 
 interface CreateClassDialogProps {
   courses: { id: string; name: string }[]
+  preselectedCourseId?: string
 }
 
-export function CreateClassDialog({ courses }: CreateClassDialogProps) {
+export function CreateClassDialog({ courses, preselectedCourseId }: CreateClassDialogProps) {
   const [open, setOpen] = useState(false)
-  const [courseId, setCourseId] = useState('')
+  const [courseId, setCourseId] = useState(preselectedCourseId || '')
   const [editionName, setEditionName] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -57,7 +58,7 @@ export function CreateClassDialog({ courses }: CreateClassDialogProps) {
     }
 
     setOpen(false)
-    setCourseId('')
+    setCourseId(preselectedCourseId || '')
     setEditionName('')
     setStartDate('')
     setEndDate('')
@@ -84,21 +85,23 @@ export function CreateClassDialog({ courses }: CreateClassDialogProps) {
                 {error}
               </div>
             )}
-            <div className="grid gap-2">
-              <Label htmlFor="course">Corso</Label>
-              <Select value={courseId} onValueChange={setCourseId} required>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona un corso" />
-                </SelectTrigger>
-                <SelectContent>
-                  {courses.map((course) => (
-                    <SelectItem key={course.id} value={course.id}>
-                      {course.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {!preselectedCourseId && (
+              <div className="grid gap-2">
+                <Label htmlFor="course">Corso</Label>
+                <Select value={courseId} onValueChange={setCourseId} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleziona un corso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courses.map((course) => (
+                      <SelectItem key={course.id} value={course.id}>
+                        {course.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="grid gap-2">
               <Label htmlFor="editionName">Nome edizione</Label>
               <Input

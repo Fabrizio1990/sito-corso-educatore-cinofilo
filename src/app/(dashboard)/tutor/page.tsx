@@ -95,8 +95,11 @@ export default async function TutorDashboard() {
                           month: 'short',
                         })}
                       </p>
-                      {lesson.lesson_time && (
-                        <p className="text-sm text-gray-500">{lesson.lesson_time.slice(0, 5)}</p>
+                      {lesson.start_time && (
+                        <p className="text-sm text-gray-500">
+                          {lesson.start_time.slice(0, 5)}
+                          {lesson.end_time && `-${lesson.end_time.slice(0, 5)}`}
+                        </p>
                       )}
                     </div>
                   </li>

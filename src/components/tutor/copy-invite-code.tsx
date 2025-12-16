@@ -11,7 +11,7 @@ export function CopyInviteCode({ inviteCode }: CopyInviteCodeProps) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = async () => {
-    const inviteUrl = `${window.location.origin}/signup?invite=${inviteCode}`
+    const inviteUrl = `${window.location.origin}/join/${inviteCode}`
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
