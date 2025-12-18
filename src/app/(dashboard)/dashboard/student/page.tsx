@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { ClassDogSelector } from '@/components/student/class-dog-selector'
 import Link from 'next/link'
 
 export default async function StudentDashboard() {
@@ -17,6 +19,24 @@ export default async function StudentDashboard() {
     .single()
 
   if (!profile) redirect('/login')
+
+  // Check profile completion
+  const isProfileComplete = !!(
+    profile.first_name &&
+    profile.last_name &&
+    profile.birth_date &&
+    profile.city &&
+    profile.phone
+  )
+
+  // Get user's dogs
+  const { data: dogs } = await supabase
+    .from('dogs')
+    .select('*')
+    .eq('profile_id', user.id)
+    .order('created_at', { ascending: true })
+
+  const hasDogs = dogs && dogs.length > 0
 
   // Get enrolled classes
   const { data: enrollments } = await supabase
@@ -36,6 +56,21 @@ export default async function StudentDashboard() {
       )
     `)
     .eq('profile_id', user.id)
+
+  // Get class_dogs for user
+  const { data: classDogs } = await supabase
+    .from('class_dogs')
+    .select('class_id, dog_id')
+    .eq('profile_id', user.id)
+
+  // Group dogs by class
+  const dogsByClass: Record<string, string[]> = {}
+  classDogs?.forEach(cd => {
+    if (!dogsByClass[cd.class_id]) {
+      dogsByClass[cd.class_id] = []
+    }
+    dogsByClass[cd.class_id].push(cd.dog_id)
+  })
 
   // Get next lesson from enrolled classes
   const classIds = enrollments?.map(e => (e.classes as { id: string })?.id).filter(Boolean) || []
@@ -60,12 +95,85 @@ export default async function StudentDashboard() {
     nextLesson = lessons?.[0]
   }
 
+  // Check if any class is missing dogs
+  const hasClassWithoutDogs = enrollments?.some(e => {
+    const classData = e.classes as { id: string }
+    return !dogsByClass[classData.id] || dogsByClass[classData.id].length === 0
+  })
+
   return (
     <div className="space-y-8">
       <div>
         <h1 className="text-3xl font-bold">Ciao, {profile.full_name.split(' ')[0]}!</h1>
         <p className="text-gray-600">Benvenuto nella tua area personale</p>
       </div>
+
+      {/* Profile/Dogs Alerts */}
+      {(!isProfileComplete || !hasDogs || (hasDogs && hasClassWithoutDogs)) && (
+        <div className="space-y-3">
+          {!isProfileComplete && (
+            <Card className="bg-yellow-50 border-yellow-200">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">⚠️</span>
+                    <div>
+                      <p className="font-medium text-yellow-900">Completa il tuo profilo</p>
+                      <p className="text-sm text-yellow-700">
+                        Inserisci i tuoi dati personali: nome, cognome, data di nascita, comune e telefono.
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/profile">
+                    <Button variant="outline" size="sm" className="shrink-0">
+                      Vai al profilo
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {!hasDogs && (
+            <Card className="bg-amber-50 border-amber-200">
+              <CardContent className="py-4">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl">🐕</span>
+                    <div>
+                      <p className="font-medium text-amber-900">Aggiungi il tuo cane</p>
+                      <p className="text-sm text-amber-700">
+                        Registra i dati del tuo cane per partecipare ai corsi.
+                      </p>
+                    </div>
+                  </div>
+                  <Link href="/profile">
+                    <Button variant="outline" size="sm" className="shrink-0">
+                      Aggiungi cane
+                    </Button>
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {hasDogs && hasClassWithoutDogs && (
+            <Card className="bg-orange-50 border-orange-200">
+              <CardContent className="py-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">🐕</span>
+                  <div>
+                    <p className="font-medium text-orange-900">Seleziona i cani per i tuoi corsi</p>
+                    <p className="text-sm text-orange-700">
+                      Hai dei corsi senza cani associati. Clicca su "Seleziona cani" nelle card dei corsi qui sotto.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
 
       {/* Next Lesson Card */}
       {nextLesson ? (
@@ -136,6 +244,7 @@ export default async function StudentDashboard() {
                 courses: { id: string; name: string; description: string | null }
               }
               const isActive = classData.end_date ? new Date(classData.end_date) >= new Date() : true
+              const selectedDogIds = dogsByClass[classData.id] || []
 
               return (
                 <Card key={classData.id} className="hover:shadow-md transition-shadow">
@@ -150,12 +259,21 @@ export default async function StudentDashboard() {
                       </Badge>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     {classData.courses?.description && (
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      <p className="text-gray-600 text-sm line-clamp-2">
                         {classData.courses.description}
                       </p>
                     )}
+
+                    {/* Dog Selector */}
+                    <ClassDogSelector
+                      classId={classData.id}
+                      className={classData.courses?.name || classData.edition_name}
+                      dogs={dogs || []}
+                      selectedDogIds={selectedDogIds}
+                    />
+
                     <div className="flex gap-2">
                       <Link href={`/dashboard/student/lessons?class=${classData.id}`} className="flex-1">
                         <button className="w-full px-4 py-2 text-sm border rounded-md hover:bg-gray-50">

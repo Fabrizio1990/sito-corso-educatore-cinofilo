@@ -9,6 +9,95 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      case_studies: {
+        Row: {
+          course_id: string
+          created_at: string | null
+          hints: string | null
+          id: string
+          model_answer: string
+          scenario: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          course_id: string
+          created_at?: string | null
+          hints?: string | null
+          id?: string
+          model_answer: string
+          scenario: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          course_id?: string
+          created_at?: string | null
+          hints?: string | null
+          id?: string
+          model_answer?: string
+          scenario?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_studies_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      case_study_attempts: {
+        Row: {
+          ai_feedback: string
+          attempt_number: number
+          case_study_id: string
+          created_at: string | null
+          id: string
+          is_correct: boolean
+          profile_id: string
+          student_answer: string
+        }
+        Insert: {
+          ai_feedback: string
+          attempt_number?: number
+          case_study_id: string
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean
+          profile_id: string
+          student_answer: string
+        }
+        Update: {
+          ai_feedback?: string
+          attempt_number?: number
+          case_study_id?: string
+          created_at?: string | null
+          id?: string
+          is_correct?: boolean
+          profile_id?: string
+          student_answer?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "case_study_attempts_case_study_id_fkey"
+            columns: ["case_study_id"]
+            isOneToOne: false
+            referencedRelation: "case_studies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "case_study_attempts_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       class_students: {
         Row: {
           class_id: string
@@ -281,6 +370,12 @@ export type Database = {
           created_at: string | null
           email: string
           full_name: string
+          first_name: string | null
+          last_name: string | null
+          birth_date: string | null
+          city: string | null
+          phone: string | null
+          avatar_url: string | null
           id: string
           role: string
           updated_at: string | null
@@ -289,6 +384,12 @@ export type Database = {
           created_at?: string | null
           email: string
           full_name: string
+          first_name?: string | null
+          last_name?: string | null
+          birth_date?: string | null
+          city?: string | null
+          phone?: string | null
+          avatar_url?: string | null
           id: string
           role?: string
           updated_at?: string | null
@@ -297,11 +398,104 @@ export type Database = {
           created_at?: string | null
           email?: string
           full_name?: string
+          first_name?: string | null
+          last_name?: string | null
+          birth_date?: string | null
+          city?: string | null
+          phone?: string | null
+          avatar_url?: string | null
           id?: string
           role?: string
           updated_at?: string | null
         }
         Relationships: []
+      }
+      dogs: {
+        Row: {
+          id: string
+          profile_id: string
+          name: string
+          sex: string
+          breed: string
+          age_years: number
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          profile_id: string
+          name: string
+          sex: string
+          breed: string
+          age_years: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          profile_id?: string
+          name?: string
+          sex?: string
+          breed?: string
+          age_years?: number
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dogs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      class_dogs: {
+        Row: {
+          id: string
+          class_id: string
+          profile_id: string
+          dog_id: string
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          class_id: string
+          profile_id: string
+          dog_id: string
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          class_id?: string
+          profile_id?: string
+          dog_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "class_dogs_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_dogs_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "class_dogs_dog_id_fkey"
+            columns: ["dog_id"]
+            isOneToOne: false
+            referencedRelation: "dogs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_submissions: {
         Row: {
@@ -411,5 +605,9 @@ export type MaterialCategory = Tables<'material_categories'>
 export type Quiz = Tables<'quizzes'>
 export type QuizSubmission = Tables<'quiz_submissions'>
 export type ClassStudent = Tables<'class_students'>
+export type CaseStudy = Tables<'case_studies'>
+export type CaseStudyAttempt = Tables<'case_study_attempts'>
+export type Dog = Tables<'dogs'>
+export type ClassDog = Tables<'class_dogs'>
 
 export type UserRole = 'student' | 'tutor' | 'admin'

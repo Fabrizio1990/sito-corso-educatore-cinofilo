@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -20,8 +21,13 @@ interface DashboardNavProps {
 }
 
 export function DashboardNav({ profile }: DashboardNavProps) {
+  const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -64,6 +70,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/tutor/quizzes" className="text-gray-600 hover:text-gray-900">
                     Quiz
                   </Link>
+                  <Link href="/tutor/case-studies" className="text-gray-600 hover:text-gray-900">
+                    Casi di Studio
+                  </Link>
                 </>
               ) : (
                 <>
@@ -79,37 +88,52 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/dashboard/student/quizzes" className="text-gray-600 hover:text-gray-900">
                     Quiz
                   </Link>
+                  <Link href="/dashboard/student/case-studies" className="text-gray-600 hover:text-gray-900">
+                    Casi di Studio
+                  </Link>
                 </>
               )}
             </div>
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">{profile.full_name}</p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {profile.email}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground capitalize">
-                    {profile.role}
-                  </p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
-                Esci
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {mounted ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                  <Avatar className="h-10 w-10">
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{profile.full_name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {profile.email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground capitalize">
+                      {profile.role}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/profile">Il mio profilo</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                  Esci
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback>{initials}</AvatarFallback>
+              </Avatar>
+            </Button>
+          )}
         </div>
       </div>
     </nav>
