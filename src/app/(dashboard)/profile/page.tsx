@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProfileForm } from '@/components/profile/profile-form'
 import { DogsSection } from '@/components/profile/dogs-section'
+import { ChangePasswordForm } from '@/components/profile/change-password-form'
 
 export default async function ProfilePage() {
   const supabase = await createClient()
@@ -81,6 +82,9 @@ export default async function ProfilePage() {
           <DogsSection dogs={dogs || []} />
         </CardContent>
       </Card>
+
+      {/* Change Password */}
+      <ChangePasswordForm />
     </div>
   )
 }

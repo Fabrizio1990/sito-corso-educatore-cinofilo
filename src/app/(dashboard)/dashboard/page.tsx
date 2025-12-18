@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   // Get user profile to determine role
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select('*, roles(permissions)')
     .eq('id', user.id)
     .single()
 
@@ -21,8 +21,10 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Redirect based on role
-  if (profile.role === 'tutor' || profile.role === 'admin') {
+  const permissions = (profile.roles as any)?.permissions as string[] || []
+
+  // Redirect based on permission (Tutors/Admins have view_all_courses)
+  if (permissions.includes('view_all_courses')) {
     redirect('/tutor')
   }
 

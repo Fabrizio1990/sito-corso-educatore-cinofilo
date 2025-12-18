@@ -56,26 +56,64 @@ export default async function StudentMaterialsPage() {
     )
   }
 
-  // Get all materials for enrolled courses with category info
+  // Get all materials for enrolled courses with category info (including sort_order)
   const { data: materials } = await supabase
     .from('materials')
     .select(`
       *,
       courses (name),
-      material_categories (id, name)
+      material_categories (id, name, sort_order)
     `)
     .in('course_id', courseIds)
     .order('created_at', { ascending: false })
 
+  // Get all categories for enrolled courses to ensure proper ordering
+  const { data: allCategories } = await supabase
+    .from('material_categories')
+    .select('id, name, sort_order, course_id')
+    .in('course_id', courseIds)
+    .order('sort_order', { ascending: true })
+
   // Organize materials by course and category
+  type CategoryData = {
+    id: string
+    name: string
+    sort_order: number | null
+    materials: Material[]
+  }
+
   type CourseData = {
     name: string
-    categories: Map<string, { name: string; materials: Material[] }>
+    categories: CategoryData[]
     uncategorized: Material[]
   }
 
   const materialsByCourse = new Map<string, CourseData>()
 
+  // First, initialize courses with their ordered categories
+  allCategories?.forEach((cat) => {
+    if (!materialsByCourse.has(cat.course_id)) {
+      const courseMat = materials?.find(m => m.course_id === cat.course_id)
+      const courseName = (courseMat?.courses as { name: string })?.name || 'Corso'
+      materialsByCourse.set(cat.course_id, {
+        name: courseName,
+        categories: [],
+        uncategorized: [],
+      })
+    }
+    const courseData = materialsByCourse.get(cat.course_id)!
+    // Only add category if not already present
+    if (!courseData.categories.find(c => c.id === cat.id)) {
+      courseData.categories.push({
+        id: cat.id,
+        name: cat.name,
+        sort_order: cat.sort_order,
+        materials: [],
+      })
+    }
+  })
+
+  // Then, assign materials to their categories
   materials?.forEach((material) => {
     const courseName = (material.courses as { name: string })?.name || 'Altro'
     const courseId = material.course_id
@@ -83,25 +121,39 @@ export default async function StudentMaterialsPage() {
     if (!materialsByCourse.has(courseId)) {
       materialsByCourse.set(courseId, {
         name: courseName,
-        categories: new Map(),
+        categories: [],
         uncategorized: [],
       })
     }
 
     const courseData = materialsByCourse.get(courseId)!
-    const category = material.material_categories as { id: string; name: string } | null
+    const category = material.material_categories as { id: string; name: string; sort_order: number | null } | null
 
     if (category) {
-      if (!courseData.categories.has(category.id)) {
-        courseData.categories.set(category.id, {
+      let catData = courseData.categories.find(c => c.id === category.id)
+      if (!catData) {
+        // Category wasn't pre-loaded, add it
+        catData = {
+          id: category.id,
           name: category.name,
+          sort_order: category.sort_order,
           materials: [],
-        })
+        }
+        courseData.categories.push(catData)
       }
-      courseData.categories.get(category.id)!.materials.push(material as Material)
+      catData.materials.push(material as Material)
     } else {
       courseData.uncategorized.push(material as Material)
     }
+  })
+
+  // Sort categories by sort_order within each course
+  materialsByCourse.forEach((courseData) => {
+    courseData.categories.sort((a, b) => {
+      const orderA = a.sort_order ?? 999
+      const orderB = b.sort_order ?? 999
+      return orderA - orderB
+    })
   })
 
   const getFileIcon = (material: Material) => {
@@ -193,26 +245,28 @@ export default async function StudentMaterialsPage() {
           <div key={courseId} className="space-y-6">
             <h2 className="text-xl font-semibold border-b pb-2">{courseData.name}</h2>
 
-            {/* Categories */}
-            {Array.from(courseData.categories.entries()).map(([catId, catData]) => (
-              <div key={catId} className="ml-4">
-                <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                  {catData.name}
-                  <Badge variant="secondary" className="text-xs">
-                    {catData.materials.length} elementi
-                  </Badge>
-                </h3>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {catData.materials.map(renderMaterialCard)}
+            {/* Categories - ordered by sort_order */}
+            {courseData.categories
+              .filter(catData => catData.materials.length > 0)
+              .map((catData) => (
+                <div key={catData.id} className="ml-4">
+                  <h3 className="text-lg font-medium mb-3 flex items-center gap-2">
+                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                    {catData.name}
+                    <Badge variant="secondary" className="text-xs">
+                      {catData.materials.length} elementi
+                    </Badge>
+                  </h3>
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {catData.materials.map(renderMaterialCard)}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
 
             {/* Uncategorized materials */}
             {courseData.uncategorized.length > 0 && (
               <div className="ml-4">
-                {courseData.categories.size > 0 && (
+                {courseData.categories.length > 0 && (
                   <h3 className="text-lg font-medium mb-3 text-gray-500">
                     Altri materiali
                   </h3>

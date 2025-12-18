@@ -9,6 +9,7 @@ import { DeleteCourseButton } from '@/components/tutor/delete-course-button'
 import { CreateClassDialog } from '@/components/tutor/create-class-dialog'
 import { UploadMaterialDialog } from '@/components/tutor/upload-material-dialog'
 import { MaterialCard } from '@/components/tutor/material-card'
+import { CategorySorter } from '@/components/tutor/category-sorter'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -76,7 +77,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
     .from('material_categories')
     .select('id, name, sort_order')
     .eq('course_id', id)
-    .order('sort_order')
+    .order('sort_order', { ascending: true })
 
   // Get quizzes count
   const { count: quizzesCount } = await supabase
@@ -202,6 +203,22 @@ export default async function CourseDetailPage({ params }: PageProps) {
         )}
       </div>
 
+      {/* Category Sorter */}
+      {categories && categories.length > 0 && (
+        <CategorySorter
+          courseId={course.id}
+          categories={categories.map(cat => {
+            const materialCount = materials?.filter(m => m.category_id === cat.id).length || 0
+            return {
+              id: cat.id,
+              name: cat.name,
+              sort_order: cat.sort_order,
+              materialCount,
+            }
+          })}
+        />
+      )}
+
       {/* Materials */}
       <div>
         <div className="flex justify-between items-center mb-4">
@@ -221,10 +238,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           <div className="space-y-6">
             {/* Materials by category */}
             {categories && categories.length > 0 && categories.map((category) => {
-              const categoryMaterials = materials.filter(m => {
-                const matCat = m.material_categories as { id: string } | null
-                return matCat?.id === category.id
-              })
+              const categoryMaterials = materials.filter(m => m.category_id === category.id)
               if (categoryMaterials.length === 0) return null
 
               return (
@@ -253,7 +267,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
               return (
                 <div>
                   {categories && categories.length > 0 && (
-                    <h3 className="text-lg font-medium mb-3 text-gray-500">Senza categoria</h3>
+                    <h3 className="text-lg font-medium mb-3 text-gray-500">Senza argomento</h3>
                   )}
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {uncategorized.map((material) => (

@@ -51,7 +51,13 @@ export default async function StudentDashboard() {
         courses (
           id,
           name,
-          description
+          description,
+          course_tutors (
+            profiles (
+              full_name,
+              avatar_url
+            )
+          )
         )
       )
     `)
@@ -241,7 +247,17 @@ export default async function StudentDashboard() {
                 edition_name: string
                 start_date: string | null
                 end_date: string | null
-                courses: { id: string; name: string; description: string | null }
+                courses: {
+                  id: string;
+                  name: string;
+                  description: string | null;
+                  course_tutors: {
+                    profiles: {
+                      full_name: string;
+                      avatar_url: string | null;
+                    } | null
+                  }[]
+                }
               }
               const isActive = classData.end_date ? new Date(classData.end_date) >= new Date() : true
               const selectedDogIds = dogsByClass[classData.id] || []
@@ -264,6 +280,29 @@ export default async function StudentDashboard() {
                       <p className="text-gray-600 text-sm line-clamp-2">
                         {classData.courses.description}
                       </p>
+                    )}
+
+                    {/* Tutors Display */}
+                    {classData.courses?.course_tutors && classData.courses.course_tutors.length > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <span className="font-medium">Tutor:</span>
+                        <div className="flex -space-x-2">
+                          {classData.courses.course_tutors.map((ct: any, idx: number) => (
+                            <div key={idx} className="relative group">
+                              <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white text-xs font-bold text-primary overflow-hidden" title={ct.profiles?.full_name}>
+                                {ct.profiles?.avatar_url ? (
+                                  <img src={ct.profiles.avatar_url} alt={ct.profiles.full_name} className="w-full h-full object-cover" />
+                                ) : (
+                                  ct.profiles?.full_name?.charAt(0) || '?'
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <span className="text-xs">
+                          {classData.courses.course_tutors.map((ct: any) => ct.profiles?.full_name).join(', ')}
+                        </span>
+                      </div>
                     )}
 
                     {/* Dog Selector */}

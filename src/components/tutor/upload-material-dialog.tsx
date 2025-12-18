@@ -101,7 +101,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
       .single()
 
     if (error) {
-      toast.error('Errore nella creazione della categoria')
+      toast.error('Errore nella creazione dell\'argomento')
       return
     }
 
@@ -109,7 +109,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
     setCategoryId(data.id)
     setNewCategoryName('')
     setShowNewCategory(false)
-    toast.success('Categoria creata')
+    toast.success('Argomento creato')
   }
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -339,7 +339,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
               <div className="grid gap-2">
                 <Label>Corso *</Label>
                 <Select value={courseId} onValueChange={setCourseId} required>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full overflow-hidden [&>span:first-child]:truncate [&>span:first-child]:overflow-hidden">
                     <SelectValue placeholder="Seleziona un corso" />
                   </SelectTrigger>
                   <SelectContent>
@@ -356,18 +356,18 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
             {/* Category Selection */}
             {courseId && (
               <div className="grid gap-2">
-                <Label>Categoria/Argomento</Label>
+                <Label>Argomento</Label>
                 {!showNewCategory ? (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 min-w-0 w-full">
                     <Select
                       value={categoryId || 'none'}
                       onValueChange={(val) => setCategoryId(val === 'none' ? '' : val)}
                     >
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Nessuna categoria" />
+                      <SelectTrigger className="flex-1 min-w-0 w-full overflow-hidden [&>span:first-child]:truncate [&>span:first-child]:overflow-hidden">
+                        <SelectValue placeholder="Nessun argomento" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="none">Nessuna categoria</SelectItem>
+                        <SelectItem value="none">Nessun argomento</SelectItem>
                         {categories.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             {cat.name}
@@ -384,12 +384,12 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
                     </Button>
                   </div>
                 ) : (
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 min-w-0 w-full">
                     <Input
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      placeholder="es. Modulo 1 - Comunicazione"
-                      className="flex-1"
+                      placeholder="es. Comunicazione canina"
+                      className="flex-1 min-w-0"
                     />
                     <Button type="button" onClick={handleCreateCategory}>
                       Crea

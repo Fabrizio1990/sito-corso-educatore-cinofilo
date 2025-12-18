@@ -17,13 +17,19 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
 interface DashboardNavProps {
-  profile: Profile
+  profile: Profile & { roles: { permissions: unknown } | null }
 }
 
 export function DashboardNav({ profile }: DashboardNavProps) {
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  // Parse permissions safely
+  const permissions = (profile.roles?.permissions as string[]) || []
+
+  // Helper for check
+  const can = (permission: string) => permissions.includes(permission)
 
   useEffect(() => {
     setMounted(true)
@@ -42,7 +48,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
     .toUpperCase()
     .slice(0, 2)
 
-  const isTutorOrAdmin = profile.role === 'tutor' || profile.role === 'admin'
+  // Use permissions for main tutor dashboard access
+  // Technically "view_all_courses" is a good proxy for "Is Tutor/Admin"
+  const isTutorOrAdmin = can('view_all_courses')
 
   return (
     <nav className="bg-white border-b">
@@ -73,6 +81,22 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/tutor/case-studies" className="text-gray-600 hover:text-gray-900">
                     Casi di Studio
                   </Link>
+
+                  {can('manage_tutors') && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 font-normal hover:bg-transparent">
+                          Amministrazione
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Gestione Utenti</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                          <Link href="/tutor/tutors">Gestione Tutor</Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </>
               ) : (
                 <>
