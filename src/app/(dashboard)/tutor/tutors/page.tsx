@@ -2,7 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { TutorManager } from '@/components/tutor/tutor-manager'
 
 export default async function TutorsPage() {
+    const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return <div className="p-8">Non autenticato</div>
+    }
     
     // Check permissions
     const { data: currentUserProfile } = await supabase
