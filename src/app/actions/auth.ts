@@ -50,19 +50,23 @@ export async function createTutor(formData: FormData) {
 
     try {
         const adminClient = getAdminClient()
+        // Generate a random temp password
+        const tempPassword = `Tutor${Math.random().toString(36).slice(-6)}!`
 
-        // 1. Invite User (sends magic link)
-        const { data: userData, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-            data: {
+        // 1. Create User in Auth
+        const { data: userData, error: createError } = await adminClient.auth.admin.createUser({
+            email,
+            password: tempPassword,
+            email_confirm: true,
+            user_metadata: {
                 full_name: `${firstName} ${lastName}`.trim(),
                 role: 'tutor'
-            },
-            redirectTo: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/callback?next=/profile` 
+            }
         })
 
-        if (inviteError) throw inviteError
+        if (createError) throw createError
 
-        // 2. Update Profile Role (Ensure consistency)
+        // 2. Update Profile Role & Security Flag
         const { error: profileError } = await adminClient
             .from('profiles')
             .update({
@@ -70,6 +74,7 @@ export async function createTutor(formData: FormData) {
                 last_name: lastName,
                 full_name: `${firstName} ${lastName}`.trim(),
                 role: 'tutor',
+                change_password_required: true 
             })
             .eq('id', userData.user.id)
 
@@ -81,12 +86,13 @@ export async function createTutor(formData: FormData) {
         
         return { 
             success: true, 
-            email 
+            email,
+            tempPassword
         }
 
     } catch (error: any) {
-        console.error('Invite Tutor Error:', error)
-        return { error: error.message || 'Errore durante l\'invito del tutor' }
+        console.error('Create Tutor Error:', error)
+        return { error: error.message || 'Errore durante la creazione del tutor' }
     }
 }
 
