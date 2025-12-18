@@ -129,3 +129,82 @@ export async function changePassword(formData: FormData) {
         return { error: error.message }
     }
 }
+
+export async function toggleTutorStatus(userId: string, shouldDisable: boolean) {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Non autorizzato' }
+
+    // Check permissions
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*, roles(permissions)')
+        .eq('id', user.id)
+        .single()
+
+    const permissions = (profile?.roles as any)?.permissions as string[] || []
+    if (!permissions.includes('manage_tutors')) {
+        return { error: 'Non hai i permessi per gestire i tutor' }
+    }
+
+    const adminClient = getAdminClient()
+
+    try {
+        if (shouldDisable) {
+            // Ban user for ~100 years
+            const { error } = await adminClient.auth.admin.updateUserById(userId, { ban_duration: '876000h' })
+            if (error) throw error
+        } else {
+            // Unban
+            const { error } = await adminClient.auth.admin.updateUserById(userId, { ban_duration: 'none' })
+            if (error) throw error
+        }
+
+        // Update profile status for UI
+        const { error: profileError } = await adminClient
+            .from('profiles')
+            .update({ is_disabled: shouldDisable })
+            .eq('id', userId)
+        
+        if (profileError) throw profileError
+
+        revalidatePath('/tutor/tutors')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Toggle Status Error:', error)
+        return { error: error.message }
+    }
+}
+
+export async function deleteTutor(userId: string) {
+    const supabase = await createServerClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) return { error: 'Non autorizzato' }
+
+    // Check permissions
+    const { data: profile } = await supabase
+        .from('profiles')
+        .select('*, roles(permissions)')
+        .eq('id', user.id)
+        .single()
+
+    const permissions = (profile?.roles as any)?.permissions as string[] || []
+    if (!permissions.includes('manage_tutors')) {
+        return { error: 'Non hai i permessi per eliminare i tutor' }
+    }
+
+    const adminClient = getAdminClient()
+
+    try {
+        const { error } = await adminClient.auth.admin.deleteUser(userId)
+        if (error) throw error
+
+        revalidatePath('/tutor/tutors')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Delete Tutor Error:', error)
+        return { error: error.message }
+    }
+}

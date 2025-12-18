@@ -496,6 +496,7 @@ export type Database = {
           first_name: string | null
           full_name: string
           id: string
+          is_disabled: boolean | null
           last_name: string | null
           phone: string | null
           role: string

@@ -82,21 +82,24 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                     Casi di Studio
                   </Link>
 
-                  {can('manage_tutors') && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 font-normal hover:bg-transparent">
-                          Amministrazione
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Gestione Utenti</DropdownMenuLabel>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 font-normal hover:bg-transparent">
+                        Amministrazione
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Gestione Utenti</DropdownMenuLabel>
+                      {can('manage_tutors') && (
                         <DropdownMenuItem asChild>
                           <Link href="/tutor/tutors">Gestione Tutor</Link>
                         </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
+                      )}
+                      <DropdownMenuItem asChild>
+                        <Link href="/tutor/students">Gestione Studenti</Link>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
                 <>
