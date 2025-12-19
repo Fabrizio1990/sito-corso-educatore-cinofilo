@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { LibraryItem, MaterialInstance } from '@/components/tutor/materials-manager'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -71,6 +72,50 @@ export default async function CourseDetailPage({ params }: PageProps) {
     `)
     .eq('course_id', id)
     .order('created_at', { ascending: false })
+
+  // --- START LIBRARY FETCHING ---
+  // Fetch ALL materials to populate the library reuse text
+  const { data: allMaterials } = await supabase
+    .from('materials')
+    .select(`
+      *,
+      courses (name),
+      material_categories (name)
+    `)
+    .order('created_at', { ascending: false })
+
+  const libraryMap = new Map<string, LibraryItem>()
+
+  allMaterials?.forEach((m) => {
+    const key = m.file_path || m.link_url
+    if (!key) return
+
+    if (!libraryMap.has(key)) {
+      libraryMap.set(key, {
+        key,
+        title: m.title,
+        type: m.material_type === 'link' ? 'link' : 'file',
+        file_type: m.file_type || undefined,
+        instances: []
+      })
+    }
+
+    const item = libraryMap.get(key)!
+
+    const instance: MaterialInstance = {
+      id: m.id,
+      title: m.title,
+      description: m.description,
+      created_at: m.created_at || new Date().toISOString(),
+      course_name: (m.courses as any)?.name || 'Sconosciuto',
+      category_name: (m.material_categories as any)?.name || null
+    }
+
+    item.instances.push(instance)
+  })
+
+  const library = Array.from(libraryMap.values())
+  // --- END LIBRARY FETCHING ---
 
   // Get categories for this course
   const { data: categories } = await supabase
@@ -227,6 +272,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
             <UploadMaterialDialog
               courses={[{ id: course.id, name: course.name }]}
               preselectedCourseId={course.id}
+              library={library}
+              showLibraryTab={true}
             />
             <Link href="/tutor/materials">
               <Button variant="outline">Gestisci</Button>
@@ -285,6 +332,8 @@ export default async function CourseDetailPage({ params }: PageProps) {
               <UploadMaterialDialog
                 courses={[{ id: course.id, name: course.name }]}
                 preselectedCourseId={course.id}
+                  library={library}
+                  showLibraryTab={true}
               />
             </CardContent>
           </Card>

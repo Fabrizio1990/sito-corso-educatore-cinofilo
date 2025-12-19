@@ -25,6 +25,22 @@ import {
 import { notifyNewMaterial } from '@/lib/notifications'
 import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
+import { LibraryItem } from './materials-manager'
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
 interface Category {
   id: string
@@ -41,11 +57,20 @@ interface UploadMaterialDialogProps {
   courses: { id: string; name: string }[]
   categories?: Category[]
   preselectedCourseId?: string
+  library?: LibraryItem[]
+  showLibraryTab?: boolean
 }
 
-export function UploadMaterialDialog({ courses, categories: initialCategories, preselectedCourseId }: UploadMaterialDialogProps) {
+export function UploadMaterialDialog({
+  courses,
+  categories: initialCategories,
+  preselectedCourseId,
+  library = [],
+  showLibraryTab = true
+}: UploadMaterialDialogProps) {
+  console.log('UploadDialog library:', library)
   const [open, setOpen] = useState(false)
-  const [materialType, setMaterialType] = useState<'file' | 'link'>('file')
+  const [materialType, setMaterialType] = useState<'file' | 'link' | 'library'>('file')
   const [courseId, setCourseId] = useState(preselectedCourseId || '')
   const [categoryId, setCategoryId] = useState('')
   const [categories, setCategories] = useState<Category[]>(initialCategories || [])
@@ -64,6 +89,11 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
   const [uploadProgress, setUploadProgress] = useState(0)
   const [currentFile, setCurrentFile] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // For Library Selection
+  const [selectedLibraryKey, setSelectedLibraryKey] = useState('')
+  const [comboboxOpen, setComboboxOpen] = useState(false)
+
   const router = useRouter()
   const supabase = createClient()
 
@@ -152,8 +182,52 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
 
     if (materialType === 'link') {
       await uploadLink()
+    } else if (materialType === 'library') {
+      await uploadFromLibrary()
     } else {
       await uploadFiles()
+    }
+  }
+
+  const uploadFromLibrary = async () => {
+    if (!selectedLibraryKey) return
+
+    const selectedItem = library.find(item => item.key === selectedLibraryKey)
+    if (!selectedItem) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      // Check if already exists in this course
+      const exists = selectedItem.instances.some(inst => inst.course_name === courses.find(c => c.id === courseId)?.name)
+      if (exists && !confirm('Questo materiale sembra già essere presente in questo corso. Vuoi aggiungerlo comunque?')) {
+        setLoading(false)
+        return
+      }
+
+      const { error: dbError } = await supabase.from('materials').insert({
+        course_id: courseId,
+        category_id: categoryId || null,
+        title: selectedItem.title,
+        description: null, // We could copy description if we had it on the LibraryItem
+        link_url: selectedItem.type === 'link' ? selectedItem.key : null,
+        material_type: selectedItem.type,
+        file_path: selectedItem.type === 'file' ? selectedItem.key : '', // Assuming key IS the public URL/path for files
+        file_type: selectedItem.file_type || null,
+      })
+
+      if (dbError) throw dbError
+
+      notifyNewMaterial(courseId, selectedItem.title)
+      toast.success('Materiale aggiunto dalla libreria')
+      resetForm()
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore durante l\'aggiunta')
+      toast.error('Errore durante l\'aggiunta')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -277,6 +351,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
     setUploadProgress(0)
     setShowNewCategory(false)
     setNewCategoryName('')
+    setSelectedLibraryKey('')
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -303,7 +378,7 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
           <DialogHeader>
             <DialogTitle>Carica materiali</DialogTitle>
             <DialogDescription>
-              Carica file multipli o aggiungi link esterni per gli studenti
+              Carica file, aggiungi link o riutilizza materiali dalla libreria
             </DialogDescription>
           </DialogHeader>
 
@@ -332,6 +407,16 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
               >
                 Link
               </Button>
+              {showLibraryTab && (
+                <Button
+                  type="button"
+                  variant={materialType === 'library' ? 'default' : 'outline'}
+                  onClick={() => setMaterialType('library')}
+                  className="flex-1"
+                >
+                  Libreria
+                </Button>
+              )}
             </div>
 
             {/* Course Selection */}
@@ -406,6 +491,83 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
                     </Button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Library Reuse Form */}
+            {materialType === 'library' && (
+              <div className="grid gap-2">
+                <Label>Seleziona Materiale *</Label>
+                <Popover open={comboboxOpen} onOpenChange={setComboboxOpen} modal={true}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={comboboxOpen}
+                      className="w-full justify-between"
+                    >
+                      {selectedLibraryKey
+                        ? library.find((item) => item.key === selectedLibraryKey)?.title
+                        : "Cerca materiale..."}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[400px] p-0 z-[60]" align="start">
+                    <Command>
+                      <CommandInput placeholder="Cerca materiale..." />
+                      <CommandList className="max-h-[300px] overflow-y-auto">
+                        <CommandEmpty>Nessun materiale trovato.</CommandEmpty>
+                        <CommandGroup heading="File">
+                          {library.filter(i => i.type === 'file').map((item) => (
+                            <CommandItem
+                              key={item.key}
+                              value={item.title}
+                              onSelect={() => {
+                                console.log('Selected:', item.title)
+                                setSelectedLibraryKey(item.key)
+                                setComboboxOpen(false)
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedLibraryKey === item.key ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.title}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                        <CommandGroup heading="Link">
+                          {library.filter(i => i.type === 'link').map((item) => (
+                            <CommandItem
+                              key={item.key}
+                              value={item.title}
+                              onSelect={() => {
+                                console.log('Selected:', item.title)
+                                setSelectedLibraryKey(item.key)
+                                setComboboxOpen(false)
+                              }}
+                              className="cursor-pointer"
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  selectedLibraryKey === item.key ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {item.title}
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-muted-foreground">
+                  Il materiale verrà collegato al corso selezionato senza duplicare i file.
+                </p>
               </div>
             )}
 
@@ -526,9 +688,9 @@ export function UploadMaterialDialog({ courses, categories: initialCategories, p
             </Button>
             <Button
               type="submit"
-              disabled={loading || !courseId || (materialType === 'file' ? filesToUpload.length === 0 : !linkUrl || !linkTitle)}
+              disabled={loading || !courseId || (materialType === 'file' ? filesToUpload.length === 0 : materialType === 'link' ? (!linkUrl || !linkTitle) : !selectedLibraryKey)}
             >
-              {loading ? 'Caricamento...' : materialType === 'file' ? `Carica ${filesToUpload.length} file` : 'Aggiungi link'}
+              {loading ? 'Caricamento...' : materialType === 'file' ? `Carica ${filesToUpload.length} file` : materialType === 'library' ? 'Aggiungi Materiale' : 'Aggiungi link'}
             </Button>
           </DialogFooter>
         </form>
