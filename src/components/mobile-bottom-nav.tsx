@@ -17,11 +17,14 @@ import {
   ClipboardList,
   UserCog,
   Megaphone,
+  HelpCircle,
+  BarChart3,
   type LucideIcon,
 } from 'lucide-react'
 
 interface MobileBottomNavProps {
   profile: Profile & { roles: { permissions: unknown } | null }
+  pendingQuizCount?: number
 }
 
 interface TabItem {
@@ -36,7 +39,7 @@ interface MoreMenuItem {
   icon: LucideIcon
 }
 
-export function MobileBottomNav({ profile }: MobileBottomNavProps) {
+export function MobileBottomNav({ profile, pendingQuizCount }: MobileBottomNavProps) {
   const pathname = usePathname()
   const [isMoreOpen, setIsMoreOpen] = useState(false)
 
@@ -64,7 +67,14 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
     { label: 'Lezioni', href: '/dashboard/student/lessons', icon: Calendar },
     { label: 'Materiali', href: '/dashboard/student/materials', icon: BookOpen },
     { label: 'Quiz', href: '/dashboard/student/quizzes', icon: FileQuestion },
+  ]
+
+  const studentMoreItems: MoreMenuItem[] = [
     { label: 'Bacheca', href: '/dashboard/student/announcements', icon: Megaphone },
+    { label: 'Casi di Studio', href: '/dashboard/student/case-studies', icon: ClipboardList },
+    { label: 'Progressi', href: '/dashboard/student/progress', icon: BarChart3 },
+    { label: 'Profilo', href: '/profile', icon: User },
+    { label: 'Guida', href: '/guide', icon: HelpCircle },
   ]
 
   const tutorTabs: TabItem[] = [
@@ -82,6 +92,7 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
     ...(canManageTutors
       ? [{ label: 'Gestione Tutor', href: '/tutor/tutors', icon: UserCog }]
       : []),
+    { label: 'Guida', href: '/guide', icon: HelpCircle },
   ]
 
   const tabs = isTutorOrAdmin ? tutorTabs : studentTabs
@@ -97,7 +108,8 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
   )
 
   // Check if any "more" item is currently active
-  const isMoreActive = isTutorOrAdmin && tutorMoreItems.some((item) => pathname.startsWith(item.href))
+  const moreItems = isTutorOrAdmin ? tutorMoreItems : studentMoreItems
+  const isMoreActive = moreItems.some((item) => pathname.startsWith(item.href))
 
   return (
     <>
@@ -131,7 +143,7 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
             </button>
           </div>
           <nav className="py-2">
-            {tutorMoreItems.map((item) => {
+            {moreItems.map((item) => {
               const Icon = item.icon
               const active = pathname.startsWith(item.href)
               return (
@@ -145,7 +157,14 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
                   }`}
                 >
                   <Icon size={20} />
-                  <span>{item.label}</span>
+                  <span>
+                    {item.label}
+                    {item.href === '/tutor/quizzes' && (pendingQuizCount || 0) > 0 && (
+                      <span className="ml-1 inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-xs font-medium">
+                        {pendingQuizCount}
+                      </span>
+                    )}
+                  </span>
                 </Link>
               )
             })}
@@ -178,9 +197,8 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
             )
           })}
 
-          {/* "Altro" button for tutor/admin */}
-          {isTutorOrAdmin && (
-            <button
+          {/* "Altro" button */}
+          <button
               onClick={() => setIsMoreOpen((prev) => !prev)}
               className={`flex flex-col items-center justify-center flex-1 h-full gap-0.5 ${
                 isMoreActive || isMoreOpen ? 'text-blue-600' : 'text-gray-500'
@@ -188,12 +206,16 @@ export function MobileBottomNav({ profile }: MobileBottomNavProps) {
               aria-label="Altro"
               aria-expanded={isMoreOpen}
             >
-              <MoreHorizontal size={20} strokeWidth={isMoreActive || isMoreOpen ? 2.5 : 2} />
+              <div className="relative">
+                <MoreHorizontal size={20} strokeWidth={isMoreActive || isMoreOpen ? 2.5 : 2} />
+                {isTutorOrAdmin && (pendingQuizCount || 0) > 0 && (
+                  <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500" />
+                )}
+              </div>
               <span className={`text-xs ${isMoreActive || isMoreOpen ? 'font-medium' : ''}`}>
                 Altro
               </span>
             </button>
-          )}
         </div>
       </nav>
     </>

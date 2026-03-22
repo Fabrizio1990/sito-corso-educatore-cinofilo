@@ -85,7 +85,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
       .filter((sub: { profiles: { id: string } | null }) =>
         sub.profiles && studentIds.includes(sub.profiles.id)
       )
-      .map((sub: { id: string; answer: string; submitted_at: string | null; tutor_feedback: string | null; profiles: { id: string; full_name: string; email: string } }) => ({
+      .map((sub: { id: string; answer: string | null; submitted_at: string | null; tutor_feedback: string | null; profiles: { id: string; full_name: string; email: string } }) => ({
         id: sub.id,
         answer: sub.answer,
         submitted_at: sub.submitted_at,
@@ -103,19 +103,17 @@ export default async function ClassDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl md:text-3xl font-bold">{classData.edition_name}</h1>
-            <Badge variant={isActive ? 'default' : 'secondary'}>
-              {isActive ? 'Attiva' : 'Conclusa'}
-            </Badge>
-          </div>
-          <p className="text-gray-600">{course?.name}</p>
-        </div>
-        <Link href="/tutor/classes">
-          <Button variant="outline">Torna alle classi</Button>
+      <div>
+        <Link href="/tutor/classes" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+          ← Torna alle classi
         </Link>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl md:text-3xl font-bold">{classData.edition_name}</h1>
+          <Badge variant={isActive ? 'default' : 'secondary'}>
+            {isActive ? 'Attiva' : 'Conclusa'}
+          </Badge>
+        </div>
+        <p className="text-gray-600">{course?.name}</p>
       </div>
 
       {/* Info Cards */}

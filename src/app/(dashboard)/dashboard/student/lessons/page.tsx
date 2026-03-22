@@ -3,17 +3,24 @@ import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AddToCalendarButton } from '@/components/student/add-to-calendar-button'
+import { LessonsClassFilter } from '@/components/student/lessons-class-filter'
+import { Suspense } from 'react'
 
-export default async function StudentLessonsPage() {
+interface PageProps {
+  searchParams: Promise<{ class?: string }>
+}
+
+export default async function StudentLessonsPage({ searchParams }: PageProps) {
+  const { class: selectedClassId } = await searchParams
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Get enrolled class IDs
+  // Get enrolled classes with course names for the filter
   const { data: enrollments } = await supabase
     .from('class_students')
-    .select('class_id')
+    .select('class_id, classes(id, edition_name, courses(name))')
     .eq('profile_id', user.id)
 
   const classIds = enrollments?.map(e => e.class_id) || []
@@ -34,8 +41,21 @@ export default async function StudentLessonsPage() {
     )
   }
 
-  // Get all lessons for enrolled classes
-  const { data: lessons } = await supabase
+  // Build filter classes for the dropdown
+  const filterClasses = (enrollments || [])
+    .map(e => {
+      const cls = e.classes as unknown as { id: string; edition_name: string; courses: { name: string } }
+      if (!cls) return null
+      return {
+        id: cls.id,
+        editionName: cls.edition_name,
+        courseName: cls.courses?.name || '',
+      }
+    })
+    .filter((c): c is NonNullable<typeof c> => c !== null)
+
+  // Get lessons, filtered by class if selected
+  let lessonsQuery = supabase
     .from('lessons')
     .select(`
       *,
@@ -44,9 +64,16 @@ export default async function StudentLessonsPage() {
         courses (name)
       )
     `)
-    .in('class_id', classIds)
     .order('lesson_date', { ascending: true })
     .order('start_time', { ascending: true })
+
+  if (selectedClassId) {
+    lessonsQuery = lessonsQuery.eq('class_id', selectedClassId)
+  } else {
+    lessonsQuery = lessonsQuery.in('class_id', classIds)
+  }
+
+  const { data: lessons } = await lessonsQuery
 
   // Get attendance records for this student
   const { data: attendanceRecords } = await supabase
@@ -68,6 +95,12 @@ export default async function StudentLessonsPage() {
         <h1 className="text-2xl md:text-3xl font-bold">Calendario Lezioni</h1>
         <p className="text-gray-600">Tutte le lezioni dei tuoi corsi</p>
       </div>
+
+      {classIds.length > 1 && (
+        <Suspense fallback={null}>
+          <LessonsClassFilter classes={filterClasses} />
+        </Suspense>
+      )}
 
       {/* Upcoming Lessons */}
       <div>

@@ -105,33 +105,33 @@ export type Database = {
       }
       attendance: {
         Row: {
+          created_at: string | null
           id: string
           lesson_id: string
+          marked_by: string | null
+          notes: string | null
           profile_id: string
           status: string | null
-          notes: string | null
-          marked_by: string | null
-          created_at: string | null
           updated_at: string | null
         }
         Insert: {
+          created_at?: string | null
           id?: string
           lesson_id: string
+          marked_by?: string | null
+          notes?: string | null
           profile_id: string
           status?: string | null
-          notes?: string | null
-          marked_by?: string | null
-          created_at?: string | null
           updated_at?: string | null
         }
         Update: {
+          created_at?: string | null
           id?: string
           lesson_id?: string
+          marked_by?: string | null
+          notes?: string | null
           profile_id?: string
           status?: string | null
-          notes?: string | null
-          marked_by?: string | null
-          created_at?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -143,15 +143,15 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "attendance_profile_id_fkey"
-            columns: ["profile_id"]
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "attendance_marked_by_fkey"
-            columns: ["marked_by"]
+            foreignKeyName: "attendance_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -370,17 +370,17 @@ export type Database = {
       course_tutors: {
         Row: {
           course_id: string
-          created_at: string | null
+          created_at: string
           tutor_id: string
         }
         Insert: {
           course_id: string
-          created_at?: string | null
+          created_at?: string
           tutor_id: string
         }
         Update: {
           course_id?: string
-          created_at?: string | null
+          created_at?: string
           tutor_id?: string
         }
         Relationships: [
@@ -580,47 +580,6 @@ export type Database = {
           },
         ]
       }
-      notifications: {
-        Row: {
-          id: string
-          recipient_id: string
-          type: string
-          title: string
-          body: string | null
-          link: string | null
-          read: boolean | null
-          created_at: string | null
-        }
-        Insert: {
-          id?: string
-          recipient_id: string
-          type: string
-          title: string
-          body?: string | null
-          link?: string | null
-          read?: boolean | null
-          created_at?: string | null
-        }
-        Update: {
-          id?: string
-          recipient_id?: string
-          type?: string
-          title?: string
-          body?: string | null
-          link?: string | null
-          read?: boolean | null
-          created_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_recipient_id_fkey"
-            columns: ["recipient_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       materials: {
         Row: {
           category_id: string | null
@@ -675,6 +634,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          body: string | null
+          created_at: string | null
+          id: string
+          link: string | null
+          read: boolean | null
+          recipient_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          read?: boolean | null
+          recipient_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string | null
+          created_at?: string | null
+          id?: string
+          link?: string | null
+          read?: boolean | null
+          recipient_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -702,6 +702,7 @@ export type Database = {
           first_name?: string | null
           full_name: string
           id: string
+          is_disabled?: boolean | null
           last_name?: string | null
           phone?: string | null
           role?: string
@@ -717,6 +718,7 @@ export type Database = {
           first_name?: string | null
           full_name?: string
           id?: string
+          is_disabled?: boolean | null
           last_name?: string | null
           phone?: string | null
           role?: string
@@ -732,44 +734,79 @@ export type Database = {
           },
         ]
       }
-      roles: {
+      quiz_questions: {
         Row: {
-          name: string
-          permissions: Json
+          correct_option_index: number
+          created_at: string | null
+          id: string
+          options: Json
+          question_text: string
+          quiz_id: string
+          sort_order: number | null
         }
         Insert: {
-          name: string
-          permissions?: Json
+          correct_option_index: number
+          created_at?: string | null
+          id?: string
+          options: Json
+          question_text: string
+          quiz_id: string
+          sort_order?: number | null
         }
         Update: {
-          name?: string
-          permissions?: Json
+          correct_option_index?: number
+          created_at?: string | null
+          id?: string
+          options?: Json
+          question_text?: string
+          quiz_id?: string
+          sort_order?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_submissions: {
         Row: {
-          answer: string
+          answer: string | null
+          answers: Json | null
+          correct_count: number | null
           id: string
           profile_id: string
           quiz_id: string
+          score: number | null
           submitted_at: string | null
+          total_questions: number | null
           tutor_feedback: string | null
         }
         Insert: {
-          answer: string
+          answer?: string | null
+          answers?: Json | null
+          correct_count?: number | null
           id?: string
           profile_id: string
           quiz_id: string
+          score?: number | null
           submitted_at?: string | null
+          total_questions?: number | null
           tutor_feedback?: string | null
         }
         Update: {
-          answer?: string
+          answer?: string | null
+          answers?: Json | null
+          correct_count?: number | null
           id?: string
           profile_id?: string
           quiz_id?: string
+          score?: number | null
           submitted_at?: string | null
+          total_questions?: number | null
           tutor_feedback?: string | null
         }
         Relationships: [
@@ -795,7 +832,8 @@ export type Database = {
           created_at: string | null
           id: string
           model_answer: string | null
-          question: string
+          question: string | null
+          quiz_type: string
           title: string
         }
         Insert: {
@@ -803,7 +841,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           model_answer?: string | null
-          question: string
+          question?: string | null
+          quiz_type?: string
           title: string
         }
         Update: {
@@ -811,7 +850,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           model_answer?: string | null
-          question?: string
+          question?: string | null
+          quiz_type?: string
           title?: string
         }
         Relationships: [
@@ -824,25 +864,29 @@ export type Database = {
           },
         ]
       }
+      roles: {
+        Row: {
+          name: string
+          permissions: Json
+        }
+        Insert: {
+          name: string
+          permissions?: Json
+        }
+        Update: {
+          name?: string
+          permissions?: Json
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      get_user_role: {
-        Args: Record<string, never>
-        Returns: string
-      }
-      is_enrolled_in_class: {
-        Args: {
-          class_uuid: string
-        }
-        Returns: boolean
-      }
-      is_tutor_or_admin: {
-        Args: Record<string, never>
-        Returns: boolean
-      }
+      get_user_role: { Args: Record<string, never>; Returns: string }
+      is_enrolled_in_class: { Args: { class_uuid: string }; Returns: boolean }
+      is_tutor_or_admin: { Args: Record<string, never>; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
@@ -948,6 +992,7 @@ export type CompositeTypes<
     ? Database["public"]["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
+// Custom type aliases
 export type Profile = Tables<'profiles'>
 export type Course = Tables<'courses'>
 export type Class = Tables<'classes'>
@@ -955,6 +1000,7 @@ export type Lesson = Tables<'lessons'>
 export type Material = Tables<'materials'>
 export type MaterialCategory = Tables<'material_categories'>
 export type Quiz = Tables<'quizzes'>
+export type QuizQuestion = Tables<'quiz_questions'>
 export type QuizSubmission = Tables<'quiz_submissions'>
 export type ClassStudent = Tables<'class_students'>
 export type CaseStudy = Tables<'case_studies'>
@@ -962,7 +1008,6 @@ export type CaseStudyAttempt = Tables<'case_study_attempts'>
 export type Dog = Tables<'dogs'>
 export type ClassDog = Tables<'class_dogs'>
 export type Role = Tables<'roles'>
-
 export type Attendance = Tables<'attendance'>
 export type Notification = Tables<'notifications'>
 export type Announcement = Tables<'announcements'>

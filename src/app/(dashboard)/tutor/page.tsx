@@ -20,12 +20,29 @@ export default async function TutorDashboard() {
   }
 
   // Get stats
-  const [coursesResult, classesResult, studentsResult, lessonsResult] = await Promise.all([
+  const today = new Date().toISOString().split('T')[0]
+  const [coursesResult, classesResult, studentsResult, lessonsResult, pendingQuizResult, pastLessonsResult] = await Promise.all([
     supabase.from('courses').select('id', { count: 'exact' }),
     supabase.from('classes').select('id', { count: 'exact' }),
     supabase.from('class_students').select('profile_id', { count: 'exact' }),
     supabase.from('lessons').select('id', { count: 'exact' }),
+    // Pending text quiz submissions (MC quizzes are auto-graded, only text needs feedback)
+    supabase
+      .from('quiz_submissions')
+      .select('id, quizzes!inner(quiz_type)')
+      .is('tutor_feedback', null)
+      .eq('quizzes.quiz_type', 'text'),
+    // Past lessons without attendance
+    supabase
+      .from('lessons')
+      .select('id, attendance(id)')
+      .lt('lesson_date', today),
   ])
+
+  const pendingQuizCount = pendingQuizResult.data?.length || 0
+  const lessonsWithoutAttendance = pastLessonsResult.data?.filter(l =>
+    !(l.attendance as any[])?.length
+  ).length || 0
 
   const stats = [
     { label: 'Corsi', value: coursesResult.count || 0, href: '/tutor/courses' },
@@ -69,6 +86,48 @@ export default async function TutorDashboard() {
           </Link>
         ))}
       </div>
+
+      {(pendingQuizCount > 0 || lessonsWithoutAttendance > 0) && (
+        <div>
+          <h2 className="text-lg font-semibold mb-3">Azioni in sospeso</h2>
+          <div className="grid gap-3 md:grid-cols-2">
+            {pendingQuizCount > 0 && (
+              <Link href="/tutor/quizzes">
+                <Card className="border-amber-200 bg-amber-50 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                        <span className="text-amber-700 font-bold text-lg">{pendingQuizCount}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-amber-900">Quiz da valutare</p>
+                        <p className="text-sm text-amber-700">Risposte in attesa di feedback</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+            {lessonsWithoutAttendance > 0 && (
+              <Link href="/tutor/classes">
+                <Card className="border-orange-200 bg-orange-50 hover:shadow-md transition-shadow cursor-pointer">
+                  <CardContent className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <span className="text-orange-700 font-bold text-lg">{lessonsWithoutAttendance}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-orange-900">Presenze da registrare</p>
+                        <p className="text-sm text-orange-700">Lezioni senza registro presenze</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-8 md:grid-cols-2">
         <Card>

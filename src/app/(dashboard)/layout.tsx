@@ -27,6 +27,18 @@ export default async function DashboardLayout({
     redirect('/login')
   }
 
+  // Fetch pending text quiz submissions for tutor/admin badge
+  let pendingQuizCount = 0
+  const isTutorOrAdmin = profile.role === 'tutor' || profile.role === 'admin'
+  if (isTutorOrAdmin) {
+    const { data } = await supabase
+      .from('quiz_submissions')
+      .select('id, quizzes!inner(quiz_type)')
+      .is('tutor_feedback', null)
+      .eq('quizzes.quiz_type', 'text')
+    pendingQuizCount = data?.length || 0
+  }
+
   // FORCE CHANGE PASSWORD: If required, render ONLY the change password modal
   // We allow navigation on the profile page itself to avoid loops if they are already there?
   // Actually, we want to block them everywhere UNTIL they change it.
@@ -47,11 +59,11 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DashboardNav profile={profile} />
+      <DashboardNav profile={profile} pendingQuizCount={pendingQuizCount} />
       <main className="container mx-auto px-4 py-4 md:py-8 pb-20 md:pb-8">
         {children}
       </main>
-      <MobileBottomNav profile={profile} />
+      <MobileBottomNav profile={profile} pendingQuizCount={pendingQuizCount} />
     </div>
   )
 }

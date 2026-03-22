@@ -56,10 +56,10 @@ export default async function StudentProgressPage() {
     .select('id, course_id')
     .in('course_id', courseIds)
 
-  // 6. Get student's quiz submissions
+  // 6. Get student's quiz submissions (with score and quiz type for MC averages)
   const { data: submissions } = await supabase
     .from('quiz_submissions')
-    .select('quiz_id')
+    .select('quiz_id, score, quizzes(quiz_type)')
     .eq('profile_id', user.id)
 
   // 7. Get case studies and attempts
@@ -82,6 +82,15 @@ export default async function StudentProgressPage() {
 
   const submittedQuizIds = new Set(submissions?.map(s => s.quiz_id) || [])
 
+  // Build a map of quiz_id -> score for MC quiz submissions
+  const mcSubmissionScores = new Map<string, number>()
+  for (const s of submissions || []) {
+    const quizType = (s.quizzes as any)?.quiz_type
+    if (quizType === 'multiple_choice' && s.score !== null && s.score !== undefined) {
+      mcSubmissionScores.set(s.quiz_id, s.score)
+    }
+  }
+
   const completedCaseStudyIds = new Set(
     caseAttempts
       ?.filter(a => a.is_correct)
@@ -97,6 +106,7 @@ export default async function StudentProgressPage() {
     attendance: { present: number; total: number; percentage: number }
     quizzes: { completed: number; total: number }
     caseStudies: { completed: number; total: number }
+    mcAverageScore?: number
   }
 
   const courseStatsMap = new Map<string, CourseStats>()
@@ -108,6 +118,8 @@ export default async function StudentProgressPage() {
   let overallQuizzesTotal = 0
   let overallCaseStudiesCompleted = 0
   let overallCaseStudiesTotal = 0
+  let overallMcScoreSum = 0
+  let overallMcScoreCount = 0
 
   for (const enrollment of enrollments || []) {
     const classData = enrollment.classes as any
@@ -137,6 +149,14 @@ export default async function StudentProgressPage() {
       : []
     const completedQuizzes = courseQuizzes.filter(q => submittedQuizIds.has(q.id)).length
 
+    // MC quiz average score for this course
+    const courseMcScores = courseQuizzes
+      .filter(q => mcSubmissionScores.has(q.id))
+      .map(q => mcSubmissionScores.get(q.id)!)
+    const courseMcAverage = courseMcScores.length > 0
+      ? Math.round((courseMcScores.reduce((sum, s) => sum + s, 0) / courseMcScores.length) * 100)
+      : undefined
+
     // Case studies for this course
     const courseCaseStudies = courseId
       ? (caseStudies || []).filter(cs => cs.course_id === courseId)
@@ -160,6 +180,7 @@ export default async function StudentProgressPage() {
         completed: completedCases,
         total: courseCaseStudies.length,
       },
+      mcAverageScore: courseMcAverage,
     })
 
     overallAttendancePresent += presentCount
@@ -168,11 +189,17 @@ export default async function StudentProgressPage() {
     overallQuizzesTotal += courseQuizzes.length
     overallCaseStudiesCompleted += completedCases
     overallCaseStudiesTotal += courseCaseStudies.length
+    overallMcScoreSum += courseMcScores.reduce((sum, s) => sum + s, 0)
+    overallMcScoreCount += courseMcScores.length
   }
 
   const overallAttendancePercentage = overallAttendanceTotal > 0
     ? Math.round((overallAttendancePresent / overallAttendanceTotal) * 100)
     : 0
+
+  const overallMcAverageScore = overallMcScoreCount > 0
+    ? Math.round((overallMcScoreSum / overallMcScoreCount) * 100)
+    : undefined
 
   const courseStatsList = Array.from(courseStatsMap.values())
 
@@ -184,7 +211,7 @@ export default async function StudentProgressPage() {
       </div>
 
       {/* Overall summary cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className={`grid gap-4 ${overallMcAverageScore !== undefined ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-gray-500">Presenze complessive</p>
@@ -217,6 +244,16 @@ export default async function StudentProgressPage() {
           </CardContent>
         </Card>
 
+        {overallMcAverageScore !== undefined && (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-gray-500">Media Quiz MC</p>
+              <p className="text-3xl font-bold text-indigo-600">{overallMcAverageScore}%</p>
+              <p className="text-xs text-gray-400">{overallMcScoreCount} quiz a risposta multipla</p>
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-gray-500">Casi studio completati</p>
@@ -248,6 +285,7 @@ export default async function StudentProgressPage() {
               attendance={stats.attendance}
               quizzes={stats.quizzes}
               caseStudies={stats.caseStudies}
+              mcAverageScore={stats.mcAverageScore}
             />
           ))}
         </div>

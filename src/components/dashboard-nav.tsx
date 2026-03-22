@@ -20,9 +20,10 @@ import { NotificationBell } from '@/components/notification-bell'
 
 interface DashboardNavProps {
   profile: Profile & { roles: { permissions: unknown } | null }
+  pendingQuizCount?: number
 }
 
-export function DashboardNav({ profile }: DashboardNavProps) {
+export function DashboardNav({ profile, pendingQuizCount }: DashboardNavProps) {
   const [mounted, setMounted] = useState(false)
   const [otherAccounts, setOtherAccounts] = useState<StoredAccount[]>([])
   const [switchingTo, setSwitchingTo] = useState<string | null>(null)
@@ -122,8 +123,13 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/tutor/materials" className="text-gray-600 hover:text-gray-900">
                     Materiali
                   </Link>
-                  <Link href="/tutor/quizzes" className="text-gray-600 hover:text-gray-900">
+                  <Link href="/tutor/quizzes" className="text-gray-600 hover:text-gray-900 flex items-center gap-1">
                     Quiz
+                    {(pendingQuizCount || 0) > 0 && (
+                      <span className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-xs font-medium">
+                        {pendingQuizCount}
+                      </span>
+                    )}
                   </Link>
                   <Link href="/tutor/case-studies" className="text-gray-600 hover:text-gray-900">
                     Casi di Studio
@@ -132,24 +138,31 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                     Bacheca
                   </Link>
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 font-normal hover:bg-transparent">
-                        Amministrazione
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Gestione Utenti</DropdownMenuLabel>
-                      {can('manage_tutors') && (
+                  {can('manage_tutors') ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="text-gray-600 hover:text-gray-900 p-0 font-normal hover:bg-transparent">
+                          Amministrazione
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Gestione Utenti</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
                           <Link href="/tutor/tutors">Gestione Tutor</Link>
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem asChild>
-                        <Link href="/tutor/students">Gestione Studenti</Link>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem asChild>
+                          <Link href="/tutor/students">Gestione Studenti</Link>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    <Link href="/tutor/students" className="text-gray-600 hover:text-gray-900">
+                      Studenti
+                    </Link>
+                  )}
+                  <Link href="/guide" className="text-gray-600 hover:text-gray-900">
+                    Guida
+                  </Link>
                 </>
               ) : (
                 <>
@@ -173,6 +186,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   </Link>
                   <Link href="/dashboard/student/progress" className="text-gray-600 hover:text-gray-900">
                     Progressi
+                  </Link>
+                  <Link href="/guide" className="text-gray-600 hover:text-gray-900">
+                    Guida
                   </Link>
                 </>
               )}
@@ -205,6 +221,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild className="cursor-pointer">
                   <Link href="/profile">Il mio profilo</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer">
+                  <Link href="/guide">Guida</Link>
                 </DropdownMenuItem>
                 {otherAccounts.length > 0 && (
                   <>

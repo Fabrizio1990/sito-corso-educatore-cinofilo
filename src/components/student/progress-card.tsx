@@ -6,6 +6,7 @@ interface ProgressCardProps {
   attendance: { present: number; total: number; percentage: number }
   quizzes: { completed: number; total: number }
   caseStudies: { completed: number; total: number }
+  mcAverageScore?: number
 }
 
 function ProgressBar({ value, color }: { value: number; color: string }) {
@@ -47,6 +48,7 @@ export function ProgressCard({
   attendance,
   quizzes,
   caseStudies,
+  mcAverageScore,
 }: ProgressCardProps) {
   const quizPercentage = quizzes.total > 0 ? (quizzes.completed / quizzes.total) * 100 : 0
   const caseStudyPercentage = caseStudies.total > 0 ? (caseStudies.completed / caseStudies.total) * 100 : 0
@@ -73,12 +75,19 @@ export function ProgressCard({
         )}
 
         {quizzes.total > 0 ? (
-          <MetricRow
-            label="Quiz completati"
-            value={`${quizzes.completed}/${quizzes.total}`}
-            barValue={quizPercentage}
-            color="bg-blue-500"
-          />
+          <div className="space-y-1">
+            <MetricRow
+              label="Quiz completati"
+              value={`${quizzes.completed}/${quizzes.total}`}
+              barValue={quizPercentage}
+              color="bg-blue-500"
+            />
+            {mcAverageScore !== undefined && (
+              <p className="text-sm text-gray-500 pl-0.5">
+                Media risposta multipla: <span className="font-medium text-blue-600">{mcAverageScore}%</span>
+              </p>
+            )}
+          </div>
         ) : (
           <div className="space-y-1">
             <span className="text-sm text-gray-500">Quiz completati</span>

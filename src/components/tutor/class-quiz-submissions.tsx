@@ -8,7 +8,7 @@ import { QuizFeedbackForm } from './quiz-feedback-form'
 
 interface QuizSubmission {
   id: string
-  answer: string
+  answer: string | null
   submitted_at: string | null
   tutor_feedback: string | null
   profiles: {
@@ -21,7 +21,7 @@ interface QuizSubmission {
 interface Quiz {
   id: string
   title: string
-  question: string
+  question: string | null
   submissions: QuizSubmission[]
 }
 

@@ -34,9 +34,22 @@ export default async function TutorQuizzesPage() {
     .select(`
       *,
       courses (name),
-      quiz_submissions (id, tutor_feedback)
+      quiz_submissions (id, tutor_feedback, score)
     `)
     .order('created_at', { ascending: false })
+
+  // For MC quizzes, get question counts
+  const mcQuizIds = quizzes?.filter(q => q.quiz_type === 'multiple_choice').map(q => q.id) || []
+  let questionCounts: Record<string, number> = {}
+  if (mcQuizIds.length > 0) {
+    const { data: questions } = await supabase
+      .from('quiz_questions')
+      .select('quiz_id')
+      .in('quiz_id', mcQuizIds)
+    questions?.forEach(q => {
+      questionCounts[q.quiz_id] = (questionCounts[q.quiz_id] || 0) + 1
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -53,9 +66,16 @@ export default async function TutorQuizzesPage() {
       {quizzes && quizzes.length > 0 ? (
         <div className="space-y-4">
           {quizzes.map((quiz) => {
-            const submissions = quiz.quiz_submissions as { id: string; tutor_feedback: string | null }[] || []
+            const submissions = quiz.quiz_submissions as { id: string; tutor_feedback: string | null; score: number | null }[] || []
             const totalSubmissions = submissions.length
             const pendingFeedback = submissions.filter(s => !s.tutor_feedback).length
+            const isMC = quiz.quiz_type === 'multiple_choice'
+
+            // For MC quizzes, calculate average score
+            const mcScores = isMC ? submissions.filter(s => s.score !== null).map(s => s.score as number) : []
+            const averageScore = mcScores.length > 0
+              ? Math.round(mcScores.reduce((sum, s) => sum + s, 0) / mcScores.length)
+              : null
 
             return (
               <Card key={quiz.id}>
@@ -64,8 +84,19 @@ export default async function TutorQuizzesPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <CardTitle className="text-lg">{quiz.title}</CardTitle>
-                        {pendingFeedback > 0 && (
-                          <Badge variant="destructive">{pendingFeedback} da valutare</Badge>
+                        {isMC ? (
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700">Risposta multipla</Badge>
+                        ) : (
+                          <Badge variant="outline">Domanda aperta</Badge>
+                        )}
+                        {isMC ? (
+                          averageScore !== null && (
+                            <Badge variant="secondary">Media: {averageScore}%</Badge>
+                          )
+                        ) : (
+                          pendingFeedback > 0 && (
+                            <Badge variant="destructive">{pendingFeedback} da valutare</Badge>
+                          )
                         )}
                       </div>
                       <CardDescription>
@@ -83,10 +114,18 @@ export default async function TutorQuizzesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-500 mb-1">Domanda:</p>
-                    <p className="text-gray-700 whitespace-pre-wrap">{quiz.question}</p>
-                  </div>
+                  {isMC ? (
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <p className="text-sm text-blue-700">
+                        {questionCounts[quiz.id] || 0} domande a risposta multipla
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500 mb-1">Domanda:</p>
+                      <p className="text-gray-700 whitespace-pre-wrap">{quiz.question}</p>
+                    </div>
+                  )}
                   <p className="text-xs text-gray-400 mt-3">
                     Creato il {new Date(quiz.created_at!).toLocaleDateString('it-IT')}
                   </p>
