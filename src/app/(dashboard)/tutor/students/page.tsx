@@ -35,7 +35,7 @@ export default async function StudentsPage() {
         <div className="p-8 space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold">Gestione Studenti</h1>
+                    <h1 className="text-2xl md:text-3xl font-bold">Gestione Studenti</h1>
                     <p className="text-muted-foreground mt-2">
                         Gestisci gli studenti, assegna classi e monitora gli accessi.
                     </p>

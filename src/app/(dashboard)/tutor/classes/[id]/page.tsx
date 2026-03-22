@@ -106,7 +106,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-3xl font-bold">{classData.edition_name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">{classData.edition_name}</h1>
             <Badge variant={isActive ? 'default' : 'secondary'}>
               {isActive ? 'Attiva' : 'Conclusa'}
             </Badge>

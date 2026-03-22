@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { AddToCalendarButton } from '@/components/student/add-to-calendar-button'
 
 export default async function StudentLessonsPage() {
   const supabase = await createClient()
@@ -21,7 +22,7 @@ export default async function StudentLessonsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Calendario Lezioni</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Calendario Lezioni</h1>
           <p className="text-gray-600">Tutte le lezioni dei tuoi corsi</p>
         </div>
         <Card>
@@ -47,6 +48,16 @@ export default async function StudentLessonsPage() {
     .order('lesson_date', { ascending: true })
     .order('start_time', { ascending: true })
 
+  // Get attendance records for this student
+  const { data: attendanceRecords } = await supabase
+    .from('attendance')
+    .select('lesson_id, status')
+    .eq('profile_id', user!.id)
+
+  const attendanceByLesson = new Map(
+    attendanceRecords?.map(a => [a.lesson_id, a.status]) || []
+  )
+
   const today = new Date().toISOString().split('T')[0]
   const upcomingLessons = lessons?.filter(l => l.lesson_date >= today) || []
   const pastLessons = lessons?.filter(l => l.lesson_date < today) || []
@@ -54,7 +65,7 @@ export default async function StudentLessonsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Calendario Lezioni</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Calendario Lezioni</h1>
         <p className="text-gray-600">Tutte le lezioni dei tuoi corsi</p>
       </div>
 
@@ -73,13 +84,20 @@ export default async function StudentLessonsPage() {
                         {(lesson.classes as { courses: { name: string } })?.courses?.name} - {(lesson.classes as { edition_name: string })?.edition_name}
                       </CardDescription>
                     </div>
-                    <Badge>
-                      {new Date(lesson.lesson_date).toLocaleDateString('it-IT', {
-                        weekday: 'short',
-                        day: 'numeric',
-                        month: 'short',
-                      })}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      <AddToCalendarButton
+                        lesson={lesson}
+                        courseName={(lesson.classes as { courses: { name: string } })?.courses?.name}
+                        variant="icon"
+                      />
+                      <Badge>
+                        {new Date(lesson.lesson_date).toLocaleDateString('it-IT', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </Badge>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -137,9 +155,29 @@ export default async function StudentLessonsPage() {
                         {(lesson.classes as { courses: { name: string } })?.courses?.name}
                       </p>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      {new Date(lesson.lesson_date).toLocaleDateString('it-IT')}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      {attendanceByLesson.has(lesson.id) && (
+                        <Badge variant={
+                          attendanceByLesson.get(lesson.id) === 'present' ? 'default' :
+                          attendanceByLesson.get(lesson.id) === 'late' ? 'default' :
+                          attendanceByLesson.get(lesson.id) === 'excused' ? 'secondary' :
+                          'destructive'
+                        } className={
+                          attendanceByLesson.get(lesson.id) === 'present' ? 'bg-green-100 text-green-800 hover:bg-green-100' :
+                          attendanceByLesson.get(lesson.id) === 'late' ? 'bg-orange-100 text-orange-800 hover:bg-orange-100' :
+                          attendanceByLesson.get(lesson.id) === 'excused' ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100' :
+                          ''
+                        }>
+                          {attendanceByLesson.get(lesson.id) === 'present' ? 'Presente' :
+                           attendanceByLesson.get(lesson.id) === 'absent' ? 'Assente' :
+                           attendanceByLesson.get(lesson.id) === 'excused' ? 'Giustificato' :
+                           attendanceByLesson.get(lesson.id) === 'late' ? 'Ritardo' : ''}
+                        </Badge>
+                      )}
+                      <span className="text-sm text-gray-500">
+                        {new Date(lesson.lesson_date).toLocaleDateString('it-IT')}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>

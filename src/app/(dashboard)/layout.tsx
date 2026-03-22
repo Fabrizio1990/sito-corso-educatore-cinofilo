@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardNav } from '@/components/dashboard-nav'
+import { MobileBottomNav } from '@/components/mobile-bottom-nav'
 import { ForcedPasswordChange } from '@/components/auth/forced-password-change'
 
 export default async function DashboardLayout({
@@ -47,9 +48,10 @@ export default async function DashboardLayout({
   return (
     <div className="min-h-screen bg-gray-50">
       <DashboardNav profile={profile} />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-4 md:py-8 pb-20 md:pb-8">
         {children}
       </main>
+      <MobileBottomNav profile={profile} />
     </div>
   )
 }

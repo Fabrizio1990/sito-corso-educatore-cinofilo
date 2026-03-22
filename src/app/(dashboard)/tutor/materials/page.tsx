@@ -73,7 +73,7 @@ export default async function TutorMaterialsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">Materiali Didattici</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Materiali Didattici</h1>
           <p className="text-gray-600">Gestisci la libreria dei materiali e le associazioni ai corsi.</p>
         </div>
       </div>

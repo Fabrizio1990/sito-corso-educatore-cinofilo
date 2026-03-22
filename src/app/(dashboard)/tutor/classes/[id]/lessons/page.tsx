@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
+import { Button } from '@/components/ui/button'
 import { CreateLessonButton } from '@/components/tutor/create-lesson-button'
 import { LessonsCalendar } from '@/components/tutor/lessons-calendar'
 import { LessonsList } from '@/components/tutor/lessons-list'
@@ -69,10 +70,17 @@ export default async function ClassLessonsPage({ params }: PageProps) {
           <Link href={`/tutor/classes/${id}`} className="text-sm text-blue-600 hover:underline mb-2 inline-block">
             ← Torna alla classe
           </Link>
-          <h1 className="text-3xl font-bold">Lezioni</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Lezioni</h1>
           <p className="text-gray-600">{course?.name} - {classData.edition_name}</p>
         </div>
-        <CreateLessonButton classId={id} />
+        <div className="flex gap-2">
+          <a href={`/api/calendar/class/${id}`} download>
+            <Button variant="outline" size="sm">
+              Esporta calendario
+            </Button>
+          </a>
+          <CreateLessonButton classId={id} />
+        </div>
       </div>
 
       {/* Calendar View */}

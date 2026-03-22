@@ -43,7 +43,7 @@ export default async function TutorCaseStudiesPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">Casi di Studio</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Casi di Studio</h1>
           <p className="text-gray-600">Scenari pratici valutati dall'AI per esercitare gli studenti</p>
         </div>
         <CreateCaseStudyDialog courses={courses || []} />

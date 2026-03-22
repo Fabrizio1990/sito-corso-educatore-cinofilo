@@ -43,7 +43,7 @@ export default async function TutorQuizzesPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold">Quiz e Verifiche</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Quiz e Verifiche</h1>
           <p className="text-gray-600">Gestisci quiz e visualizza le risposte degli studenti</p>
         </div>
         <CreateQuizDialog courses={courses || []} />

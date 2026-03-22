@@ -51,7 +51,7 @@ export default async function TutorDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Dashboard Tutor</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Dashboard Tutor</h1>
         <p className="text-gray-600">Benvenuto, {profile.full_name}</p>
       </div>
 
@@ -132,6 +132,10 @@ export default async function TutorDashboard() {
             <Link href="/tutor/quizzes" className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors">
               <p className="font-medium">Gestisci Quiz</p>
               <p className="text-sm text-gray-500">Crea quiz e rivedi risposte</p>
+            </Link>
+            <Link href="/tutor/announcements" className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors">
+              <p className="font-medium">Bacheca Comunicazioni</p>
+              <p className="text-sm text-gray-500">Pubblica comunicazioni per gli studenti</p>
             </Link>
           </CardContent>
         </Card>

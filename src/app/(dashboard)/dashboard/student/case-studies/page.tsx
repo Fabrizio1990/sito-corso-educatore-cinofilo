@@ -30,7 +30,7 @@ export default async function StudentCaseStudiesPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Casi di Studio</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Casi di Studio</h1>
           <p className="text-gray-600">Analizza scenari pratici e ricevi feedback dall'AI</p>
         </div>
         <Card>
@@ -75,7 +75,7 @@ export default async function StudentCaseStudiesPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Casi di Studio</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Casi di Studio</h1>
         <p className="text-gray-600">Analizza scenari pratici e ricevi feedback dall'AI in tempo reale</p>
       </div>
 

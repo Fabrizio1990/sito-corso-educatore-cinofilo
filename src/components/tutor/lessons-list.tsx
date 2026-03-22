@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DeleteLessonButton } from './delete-lesson-button'
 import { LessonDialog, Lesson } from './lesson-dialog'
+import Link from 'next/link'
 
 interface LessonsListProps {
   classId: string
@@ -60,6 +61,11 @@ export function LessonsList({ classId, lessons }: LessonsListProps) {
                         </CardDescription>
                       </div>
                       <div className="flex gap-2">
+                        <Link href={`/tutor/classes/${classId}/lessons/${lesson.id}/attendance`}>
+                          <Button variant="outline" size="sm">
+                            Presenze
+                          </Button>
+                        </Link>
                         <Button
                           variant="outline"
                           size="sm"

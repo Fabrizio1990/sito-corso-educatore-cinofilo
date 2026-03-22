@@ -38,7 +38,7 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-3xl font-bold">Il mio profilo</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Il mio profilo</h1>
         <p className="text-gray-600">Gestisci i tuoi dati personali e i tuoi cani</p>
       </div>
 

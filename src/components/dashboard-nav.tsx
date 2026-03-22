@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Profile } from '@/types/database'
+import { getAccounts, removeAccount, saveAccount, type StoredAccount } from '@/lib/account-store'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { NotificationBell } from '@/components/notification-bell'
 
 interface DashboardNavProps {
   profile: Profile & { roles: { permissions: unknown } | null }
@@ -22,6 +24,8 @@ interface DashboardNavProps {
 
 export function DashboardNav({ profile }: DashboardNavProps) {
   const [mounted, setMounted] = useState(false)
+  const [otherAccounts, setOtherAccounts] = useState<StoredAccount[]>([])
+  const [switchingTo, setSwitchingTo] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
@@ -33,10 +37,52 @@ export function DashboardNav({ profile }: DashboardNavProps) {
 
   useEffect(() => {
     setMounted(true)
-  }, [])
+    const accounts = getAccounts().filter(a => a.email !== profile.email)
+    setOtherAccounts(accounts)
+
+    // Keep tokens updated in store when Supabase refreshes them
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'TOKEN_REFRESHED' && session) {
+        const existing = getAccounts().find(a => a.email === session.user.email)
+        if (existing) {
+          saveAccount({
+            ...existing,
+            access_token: session.access_token,
+            refresh_token: session.refresh_token,
+            updated_at: Date.now(),
+          })
+        }
+      }
+    })
+
+    return () => subscription.unsubscribe()
+  }, [profile.email, supabase.auth])
+
+  const handleSwitchAccount = async (account: StoredAccount) => {
+    setSwitchingTo(account.email)
+    try {
+      const { error } = await supabase.auth.setSession({
+        access_token: account.access_token,
+        refresh_token: account.refresh_token,
+      })
+      if (error) {
+        // Token expired, remove from store and prompt re-login
+        removeAccount(account.email)
+        setOtherAccounts(prev => prev.filter(a => a.email !== account.email))
+        alert(`Sessione scaduta per ${account.email}. Effettua di nuovo il login con quell'account.`)
+        setSwitchingTo(null)
+        return
+      }
+      // Reload the page to pick up the new session
+      window.location.href = '/dashboard'
+    } catch {
+      setSwitchingTo(null)
+    }
+  }
 
   const handleLogout = async () => {
-    await supabase.auth.signOut()
+    // Keep account in store for switching back later
+    await supabase.auth.signOut({ scope: 'local' })
     router.push('/login')
     router.refresh()
   }
@@ -58,7 +104,8 @@ export function DashboardNav({ profile }: DashboardNavProps) {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <Link href="/dashboard" className="font-bold text-xl text-gray-900">
-              Dog Trainer Hub
+              <span className="md:hidden">DTH</span>
+              <span className="hidden md:inline">Dog Trainer Hub</span>
             </Link>
             <div className="hidden md:flex items-center space-x-4">
               {isTutorOrAdmin ? (
@@ -80,6 +127,9 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   </Link>
                   <Link href="/tutor/case-studies" className="text-gray-600 hover:text-gray-900">
                     Casi di Studio
+                  </Link>
+                  <Link href="/tutor/announcements" className="text-gray-600 hover:text-gray-900">
+                    Bacheca
                   </Link>
 
                   <DropdownMenu>
@@ -118,11 +168,19 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                   <Link href="/dashboard/student/case-studies" className="text-gray-600 hover:text-gray-900">
                     Casi di Studio
                   </Link>
+                  <Link href="/dashboard/student/announcements" className="text-gray-600 hover:text-gray-900">
+                    Bacheca
+                  </Link>
+                  <Link href="/dashboard/student/progress" className="text-gray-600 hover:text-gray-900">
+                    Progressi
+                  </Link>
                 </>
               )}
             </div>
           </div>
 
+          <div className="flex items-center gap-2">
+          {mounted && <NotificationBell />}
           {mounted ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -148,6 +206,41 @@ export function DashboardNav({ profile }: DashboardNavProps) {
                 <DropdownMenuItem asChild className="cursor-pointer">
                   <Link href="/profile">Il mio profilo</Link>
                 </DropdownMenuItem>
+                {otherAccounts.length > 0 && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                      Cambia account
+                    </DropdownMenuLabel>
+                    {otherAccounts.map((account) => (
+                      <DropdownMenuItem
+                        key={account.email}
+                        onClick={() => handleSwitchAccount(account)}
+                        className="cursor-pointer"
+                        disabled={switchingTo === account.email}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-7 w-7">
+                            <AvatarFallback className="text-xs">
+                              {account.full_name
+                                .split(' ')
+                                .map((n) => n[0])
+                                .join('')
+                                .toUpperCase()
+                                .slice(0, 2)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{account.full_name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {switchingTo === account.email ? 'Cambio in corso...' : account.role}
+                            </span>
+                          </div>
+                        </div>
+                      </DropdownMenuItem>
+                    ))}
+                  </>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
                   Esci
@@ -161,6 +254,7 @@ export function DashboardNav({ profile }: DashboardNavProps) {
               </Avatar>
             </Button>
           )}
+          </div>
         </div>
       </div>
     </nav>

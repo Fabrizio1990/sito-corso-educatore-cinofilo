@@ -33,7 +33,7 @@ export default async function CoursesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Corsi</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Corsi</h1>
           <p className="text-gray-600">Gestisci i tuoi corsi di formazione</p>
         </div>
         <CreateCourseDialog />

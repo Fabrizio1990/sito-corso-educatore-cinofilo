@@ -43,7 +43,7 @@ export default async function ClassesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Classi</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Classi</h1>
           <p className="text-gray-600">Gestisci le edizioni dei tuoi corsi</p>
         </div>
         <CreateClassDialog courses={courses || []} />

@@ -44,7 +44,7 @@ export default async function StudentMaterialsPage() {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Materiali Didattici</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">Materiali Didattici</h1>
           <p className="text-gray-600">Dispense e documenti dei tuoi corsi</p>
         </div>
         <Card>
@@ -236,7 +236,7 @@ export default async function StudentMaterialsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Materiali Didattici</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Materiali Didattici</h1>
         <p className="text-gray-600">Dispense e documenti dei tuoi corsi</p>
       </div>
 

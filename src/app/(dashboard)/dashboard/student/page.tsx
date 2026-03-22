@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ClassDogSelector } from '@/components/student/class-dog-selector'
+import { AddToCalendarButton } from '@/components/student/add-to-calendar-button'
 import Link from 'next/link'
 
 export default async function StudentDashboard() {
@@ -81,6 +82,27 @@ export default async function StudentDashboard() {
   // Get next lesson from enrolled classes
   const classIds = enrollments?.map(e => (e.classes as { id: string })?.id).filter(Boolean) || []
 
+  // Get latest announcements (global + enrolled classes)
+  let latestAnnouncements: any[] = []
+  {
+    const announcementQuery = classIds.length > 0
+      ? supabase
+          .from('announcements')
+          .select('id, title, body, priority, pinned, created_at, profiles!announcements_author_id_fkey(full_name)')
+          .or(`class_id.is.null,class_id.in.(${classIds.join(',')})`)
+          .order('created_at', { ascending: false })
+          .limit(3)
+      : supabase
+          .from('announcements')
+          .select('id, title, body, priority, pinned, created_at, profiles!announcements_author_id_fkey(full_name)')
+          .is('class_id', null)
+          .order('created_at', { ascending: false })
+          .limit(3)
+
+    const { data } = await announcementQuery
+    latestAnnouncements = data || []
+  }
+
   let nextLesson = null
   if (classIds.length > 0) {
     const { data: lessons } = await supabase
@@ -110,7 +132,7 @@ export default async function StudentDashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold">Ciao, {profile.full_name.split(' ')[0]}!</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">Ciao, {profile.full_name.split(' ')[0]}!</h1>
         <p className="text-gray-600">Benvenuto nella tua area personale</p>
       </div>
 
@@ -181,6 +203,41 @@ export default async function StudentDashboard() {
         </div>
       )}
 
+      {/* Latest Announcements */}
+      {latestAnnouncements.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold">Ultime comunicazioni</h2>
+            <Link href="/dashboard/student/announcements" className="text-sm text-blue-600 hover:underline">
+              Vedi tutte
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {latestAnnouncements.map((a: any) => (
+              <Card key={a.id} className={`${a.priority === 'urgent' ? 'border-l-4 border-l-red-500' : a.priority === 'important' ? 'border-l-4 border-l-yellow-500' : ''}`}>
+                <CardContent className="py-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-sm truncate">{a.title}</p>
+                      <p className="text-xs text-gray-500 line-clamp-1">{a.body}</p>
+                    </div>
+                    {a.priority === 'urgent' && (
+                      <Badge variant="destructive" className="shrink-0 text-xs">Urgente</Badge>
+                    )}
+                    {a.priority === 'important' && (
+                      <Badge className="shrink-0 text-xs bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Importante</Badge>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {a.profiles?.full_name} &middot; {a.created_at ? new Date(a.created_at).toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }) : ''}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Next Lesson Card */}
       {nextLesson ? (
         <Card className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
@@ -226,6 +283,14 @@ export default async function StudentDashboard() {
                 <p className="font-medium">{nextLesson.required_prep}</p>
               </div>
             )}
+            <div className="mt-4">
+              <AddToCalendarButton
+                lesson={nextLesson}
+                courseName={(nextLesson.classes as { courses: { name: string } })?.courses?.name}
+                variant="button"
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+              />
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -343,7 +408,7 @@ export default async function StudentDashboard() {
       </div>
 
       {/* Quick Links */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Link href="/dashboard/student/lessons">
           <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
             <CardHeader>
@@ -388,6 +453,22 @@ export default async function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600 text-sm">Completa quiz e casi studio</p>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/dashboard/student/announcements">
+          <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                </svg>
+                Bacheca
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-gray-600 text-sm">Comunicazioni e novità dal corso</p>
             </CardContent>
           </Card>
         </Link>

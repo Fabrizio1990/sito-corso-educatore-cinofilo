@@ -30,7 +30,7 @@ export default async function TutorsPage() {
 
     return (
         <div className="p-8 space-y-8">
-            <h1 className="text-3xl font-bold">Gestione Tutor</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">Gestione Tutor</h1>
             <p className="text-muted-foreground">
                 Gestisci i tutor della piattaforma. Puoi creare nuovi account tutor che dovranno cambiare la password al primo accesso.
             </p>

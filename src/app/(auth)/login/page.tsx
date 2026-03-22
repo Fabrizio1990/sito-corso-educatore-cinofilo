@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { saveAccount } from '@/lib/account-store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,7 +25,7 @@ function LoginForm() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
@@ -33,6 +34,25 @@ function LoginForm() {
       setError(error.message)
       setLoading(false)
       return
+    }
+
+    // Save account to multi-account store
+    if (data.session && data.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, role, avatar_url')
+        .eq('id', data.user.id)
+        .single()
+
+      saveAccount({
+        email: data.user.email!,
+        full_name: profile?.full_name ?? '',
+        role: profile?.role ?? 'student',
+        avatar_url: profile?.avatar_url ?? null,
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+        updated_at: Date.now(),
+      })
     }
 
     // If there's an invite code, redirect to join page

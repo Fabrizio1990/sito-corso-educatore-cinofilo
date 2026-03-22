@@ -142,7 +142,7 @@ export default async function CourseDetailPage({ params }: PageProps) {
           <Link href="/tutor/courses" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
             ← Torna ai corsi
           </Link>
-          <h1 className="text-3xl font-bold">{course.name}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{course.name}</h1>
           {course.description && (
             <p className="text-gray-600 mt-2">{course.description}</p>
           )}

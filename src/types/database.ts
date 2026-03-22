@@ -9,6 +9,155 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      announcement_reads: {
+        Row: {
+          announcement_id: string
+          profile_id: string
+          read_at: string | null
+        }
+        Insert: {
+          announcement_id: string
+          profile_id: string
+          read_at?: string | null
+        }
+        Update: {
+          announcement_id?: string
+          profile_id?: string
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcement_reads_announcement_id_fkey"
+            columns: ["announcement_id"]
+            isOneToOne: false
+            referencedRelation: "announcements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcement_reads_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      announcements: {
+        Row: {
+          author_id: string
+          body: string
+          class_id: string | null
+          course_id: string | null
+          created_at: string | null
+          id: string
+          pinned: boolean | null
+          priority: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id: string
+          body: string
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          pinned?: boolean | null
+          priority?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          class_id?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string
+          pinned?: boolean | null
+          priority?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "announcements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "announcements_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      attendance: {
+        Row: {
+          id: string
+          lesson_id: string
+          profile_id: string
+          status: string | null
+          notes: string | null
+          marked_by: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          lesson_id: string
+          profile_id: string
+          status?: string | null
+          notes?: string | null
+          marked_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          lesson_id?: string
+          profile_id?: string
+          status?: string | null
+          notes?: string | null
+          marked_by?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attendance_marked_by_fkey"
+            columns: ["marked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       case_studies: {
         Row: {
           course_id: string
@@ -431,6 +580,47 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          id: string
+          recipient_id: string
+          type: string
+          title: string
+          body: string | null
+          link: string | null
+          read: boolean | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          recipient_id: string
+          type: string
+          title: string
+          body?: string | null
+          link?: string | null
+          read?: boolean | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          recipient_id?: string
+          type?: string
+          title?: string
+          body?: string | null
+          link?: string | null
+          read?: boolean | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       materials: {
         Row: {
           category_id: string | null
@@ -772,5 +962,10 @@ export type CaseStudyAttempt = Tables<'case_study_attempts'>
 export type Dog = Tables<'dogs'>
 export type ClassDog = Tables<'class_dogs'>
 export type Role = Tables<'roles'>
+
+export type Attendance = Tables<'attendance'>
+export type Notification = Tables<'notifications'>
+export type Announcement = Tables<'announcements'>
+export type AnnouncementRead = Tables<'announcement_reads'>
 
 export type UserRole = 'student' | 'tutor' | 'admin'
