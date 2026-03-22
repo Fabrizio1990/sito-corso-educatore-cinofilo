@@ -74,8 +74,8 @@ export default async function CaseStudyAttemptsPage({ params }: PageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Link href="/tutor/case-studies" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
-          ← Torna ai casi di studio
+        <Link href="/tutor/exercises?tab=case-studies" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+          ← Torna agli esercizi
         </Link>
         <h1 className="text-2xl md:text-3xl font-bold">{caseStudy.title}</h1>
         <p className="text-gray-600">{(caseStudy.courses as { name: string })?.name}</p>

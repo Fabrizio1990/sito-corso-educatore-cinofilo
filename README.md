@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dog Trainer Hub
 
-## Getting Started
+Piattaforma web per la gestione di corsi di educazione cinofila. Pensata per essere il punto di riferimento unico per docenti e studenti, sostituendo la comunicazione frammentata su WhatsApp, Google Classroom e calendari PDF.
 
-First, run the development server:
+## Funzionalita'
+
+### Per gli Studenti
+- **Dashboard** con prossima lezione, comunicazioni recenti e corsi iscritti
+- **Lezioni** con calendario, filtro per classe e integrazione Google Calendar / .ics
+- **Materiali** didattici organizzati per corso e categoria (PDF, documenti, link)
+- **Esercizi** (Quiz + Casi di Studio in un'unica sezione con tab)
+  - Quiz a domanda aperta con feedback manuale del tutor
+  - Quiz a risposta multipla con punteggio immediato
+  - Casi di studio con valutazione AI automatica (Gemini)
+- **Bacheca** comunicazioni con priorita' e indicatore non letti
+- **Progressi** con percentuali presenze, quiz completati e punteggi
+- **Profilo** con gestione dati personali e cani
+- **Notifiche** in-app con campanella e contatore
+
+### Per i Tutor
+- **Dashboard** con statistiche, azioni in sospeso e prossime lezioni
+- **Gestione Corsi** con classi, edizioni e codici invito
+- **Gestione Lezioni** con calendario, presenze e export .ics
+- **Gestione Materiali** con upload, categorie e ordinamento drag & drop
+- **Gestione Esercizi** (Quiz MC/aperti + Casi di Studio con AI)
+- **Registro Presenze** per lezione (presente/assente/giustificato/ritardo)
+- **Bacheca** con annunci globali o per classe, priorita' e pin
+- **Badge** nella navigazione per quiz da valutare
+
+### Per gli Admin
+- Tutto cio' che ha il tutor, piu':
+- **Gestione Tutor** (creazione account con password temporanea)
+
+### Generale
+- **PWA** installabile su home screen del telefono
+- **Navigazione mobile** con bottom tab bar e drawer "Altro"
+- **Multi-account** switch rapido tra utenti
+- **Pagina Guida** contestuale per ruolo
+
+## Tech Stack
+
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript
+- **Styling**: Tailwind CSS 4, Radix UI / shadcn components
+- **Database**: Supabase (PostgreSQL) con RLS
+- **AI**: Google Gemini API (valutazione casi di studio)
+- **Email**: Resend API
+- **Deploy**: Vercel (CI/CD automatico da GitHub)
+- **Icone**: Lucide React
+
+## Setup Locale
+
+### Prerequisiti
+- Node.js 18+
+- Account Supabase
+- Account Vercel (opzionale, per deploy)
+
+### Installazione
+
+```bash
+git clone <repo-url>
+cd "Corso educatore cinofilo"
+npm install
+```
+
+### Variabili d'Ambiente
+
+Crea `.env.local` con:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+GEMINI_API_KEY=your-gemini-api-key
+RESEND_API_KEY=your-resend-api-key
+```
+
+### Avvio
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Apri [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+```
 
-## Learn More
+## Struttura Progetto
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    (auth)/          # Login, signup, join
+    (dashboard)/     # Area protetta
+      dashboard/     # Pagine studente
+      tutor/         # Pagine tutor
+      guide/         # Guida utente
+      profile/       # Profilo utente
+    actions/         # Server actions
+    api/             # API routes (calendar .ics, AI evaluation)
+  components/
+    ui/              # Componenti base shadcn
+    student/         # Componenti studente
+    tutor/           # Componenti tutor
+  lib/               # Utility (supabase client, ics, utils)
+  types/             # TypeScript types (database schema)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Database
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Il database e' gestito da Supabase con le seguenti tabelle principali:
 
-## Deploy on Vercel
+- `profiles`, `roles` - Utenti e permessi
+- `courses`, `classes`, `class_students` - Corsi e iscrizioni
+- `lessons`, `attendance` - Lezioni e presenze
+- `materials`, `material_categories` - Materiali didattici
+- `quizzes`, `quiz_questions`, `quiz_submissions` - Quiz (aperti e MC)
+- `case_studies`, `case_study_attempts` - Casi di studio
+- `announcements`, `announcement_reads` - Comunicazioni
+- `notifications` - Notifiche in-app
+- `dogs`, `class_dogs` - Cani degli studenti
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Tutte le tabelle hanno Row Level Security (RLS) attive.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Deploy
+
+Il deploy avviene automaticamente su Vercel ad ogni push su `main`.

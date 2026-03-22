@@ -123,16 +123,13 @@ export function DashboardNav({ profile, pendingQuizCount }: DashboardNavProps) {
                   <Link href="/tutor/materials" className="text-gray-600 hover:text-gray-900">
                     Materiali
                   </Link>
-                  <Link href="/tutor/quizzes" className="text-gray-600 hover:text-gray-900 flex items-center gap-1">
-                    Quiz
+                  <Link href="/tutor/exercises" className="text-gray-600 hover:text-gray-900 flex items-center gap-1">
+                    Esercizi
                     {(pendingQuizCount || 0) > 0 && (
                       <span className="inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-xs font-medium">
                         {pendingQuizCount}
                       </span>
                     )}
-                  </Link>
-                  <Link href="/tutor/case-studies" className="text-gray-600 hover:text-gray-900">
-                    Casi di Studio
                   </Link>
                   <Link href="/tutor/announcements" className="text-gray-600 hover:text-gray-900">
                     Bacheca
@@ -175,11 +172,8 @@ export function DashboardNav({ profile, pendingQuizCount }: DashboardNavProps) {
                   <Link href="/dashboard/student/materials" className="text-gray-600 hover:text-gray-900">
                     Materiali
                   </Link>
-                  <Link href="/dashboard/student/quizzes" className="text-gray-600 hover:text-gray-900">
-                    Quiz
-                  </Link>
-                  <Link href="/dashboard/student/case-studies" className="text-gray-600 hover:text-gray-900">
-                    Casi di Studio
+                  <Link href="/dashboard/student/exercises" className="text-gray-600 hover:text-gray-900">
+                    Esercizi
                   </Link>
                   <Link href="/dashboard/student/announcements" className="text-gray-600 hover:text-gray-900">
                     Bacheca

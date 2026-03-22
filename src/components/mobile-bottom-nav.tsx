@@ -14,7 +14,7 @@ import {
   Users,
   MoreHorizontal,
   X,
-  ClipboardList,
+
   UserCog,
   Megaphone,
   HelpCircle,
@@ -66,12 +66,11 @@ export function MobileBottomNav({ profile, pendingQuizCount }: MobileBottomNavPr
     { label: 'Home', href: '/dashboard/student', icon: Home },
     { label: 'Lezioni', href: '/dashboard/student/lessons', icon: Calendar },
     { label: 'Materiali', href: '/dashboard/student/materials', icon: BookOpen },
-    { label: 'Quiz', href: '/dashboard/student/quizzes', icon: FileQuestion },
+    { label: 'Esercizi', href: '/dashboard/student/exercises', icon: FileQuestion },
   ]
 
   const studentMoreItems: MoreMenuItem[] = [
     { label: 'Bacheca', href: '/dashboard/student/announcements', icon: Megaphone },
-    { label: 'Casi di Studio', href: '/dashboard/student/case-studies', icon: ClipboardList },
     { label: 'Progressi', href: '/dashboard/student/progress', icon: BarChart3 },
     { label: 'Profilo', href: '/profile', icon: User },
     { label: 'Guida', href: '/guide', icon: HelpCircle },
@@ -86,8 +85,7 @@ export function MobileBottomNav({ profile, pendingQuizCount }: MobileBottomNavPr
 
   const tutorMoreItems: MoreMenuItem[] = [
     { label: 'Bacheca', href: '/tutor/announcements', icon: Megaphone },
-    { label: 'Quiz', href: '/tutor/quizzes', icon: FileQuestion },
-    { label: 'Casi di Studio', href: '/tutor/case-studies', icon: ClipboardList },
+    { label: 'Esercizi', href: '/tutor/exercises', icon: FileQuestion },
     { label: 'Gestione Studenti', href: '/tutor/students', icon: User },
     ...(canManageTutors
       ? [{ label: 'Gestione Tutor', href: '/tutor/tutors', icon: UserCog }]
@@ -124,14 +122,14 @@ export function MobileBottomNav({ profile, pendingQuizCount }: MobileBottomNavPr
 
       {/* "Altro" slide-up drawer */}
       <div
-        className={`fixed bottom-0 left-0 right-0 z-50 md:hidden transition-transform duration-200 ease-out ${
+        className={`fixed bottom-0 left-0 right-0 z-[60] md:hidden transition-transform duration-200 ease-out ${
           isMoreOpen ? 'translate-y-0' : 'translate-y-full'
         }`}
         role="dialog"
         aria-modal="true"
         aria-label="Menu aggiuntivo"
       >
-        <div className="bg-white rounded-t-2xl shadow-lg border-t border-gray-200 pb-[env(safe-area-inset-bottom)]">
+        <div className="bg-white rounded-t-2xl shadow-lg border-t border-gray-200 pb-[env(safe-area-inset-bottom)] max-h-[70vh] overflow-y-auto">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="text-sm font-semibold text-gray-900">Altro</span>
             <button
@@ -159,7 +157,7 @@ export function MobileBottomNav({ profile, pendingQuizCount }: MobileBottomNavPr
                   <Icon size={20} />
                   <span>
                     {item.label}
-                    {item.href === '/tutor/quizzes' && (pendingQuizCount || 0) > 0 && (
+                    {item.href === '/tutor/exercises' && (pendingQuizCount || 0) > 0 && (
                       <span className="ml-1 inline-flex items-center justify-center h-5 min-w-5 px-1 rounded-full bg-red-500 text-white text-xs font-medium">
                         {pendingQuizCount}
                       </span>

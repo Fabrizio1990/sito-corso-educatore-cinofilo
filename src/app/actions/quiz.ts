@@ -55,7 +55,7 @@ export async function submitMCQuiz(
 
   if (error) return { error: error.message }
 
-  revalidatePath('/dashboard/student/quizzes')
+  revalidatePath('/dashboard/student/exercises')
   return {
     data: {
       score,

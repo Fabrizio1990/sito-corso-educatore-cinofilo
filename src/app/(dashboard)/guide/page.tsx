@@ -9,7 +9,6 @@ import {
   BarChart3,
   Users,
   GraduationCap,
-  ClipboardList,
   UserCog,
   Bell,
   Dog,
@@ -47,16 +46,10 @@ const studentSections: GuideSection[] = [
   },
   {
     icon: FileQuestion,
-    title: 'Quiz',
+    title: 'Esercizi',
     description:
-      'Completa i quiz assegnati dai tutor. I quiz possono essere a domanda aperta (con feedback del tutor) o a risposta multipla (con punteggio immediato).',
-    tips: 'I quiz a risposta multipla mostrano il punteggio subito!',
-  },
-  {
-    icon: ClipboardList,
-    title: 'Casi di Studio',
-    description:
-      "Analizza scenari reali e ricevi feedback automatico dall'AI. Puoi riprovare finché non raggiungi la risposta corretta.",
+      'La sezione Esercizi contiene sia i Quiz che i Casi di Studio. I quiz possono essere a domanda aperta (con feedback del tutor) o a risposta multipla (con punteggio immediato). I casi di studio ti permettono di analizzare scenari reali e ricevere feedback automatico dall\'AI.',
+    tips: 'I quiz a risposta multipla mostrano il punteggio subito! Nei casi di studio puoi riprovare finche\' non raggiungi la risposta corretta.',
   },
   {
     icon: Megaphone,
@@ -117,15 +110,10 @@ const tutorSections: GuideSection[] = [
   },
   {
     icon: FileQuestion,
-    title: 'Quiz',
+    title: 'Esercizi',
     description:
-      'Crea quiz a domanda aperta o a risposta multipla. Per i quiz aperti, dai feedback manualmente. Per i quiz MC, i risultati sono automatici.',
-  },
-  {
-    icon: ClipboardList,
-    title: 'Casi di Studio',
-    description:
-      "Crea scenari con risposta modello. L'AI valuta automaticamente le risposte degli studenti.",
+      'La sezione Esercizi riunisce Quiz e Casi di Studio. Crea quiz a domanda aperta o a risposta multipla (i risultati MC sono automatici). Crea casi di studio con risposta modello per la valutazione AI automatica.',
+    tips: 'Usa i tab nella pagina Esercizi per passare rapidamente tra Quiz e Casi di Studio',
   },
   {
     icon: BarChart3,

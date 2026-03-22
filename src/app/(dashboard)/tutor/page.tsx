@@ -92,7 +92,7 @@ export default async function TutorDashboard() {
           <h2 className="text-lg font-semibold mb-3">Azioni in sospeso</h2>
           <div className="grid gap-3 md:grid-cols-2">
             {pendingQuizCount > 0 && (
-              <Link href="/tutor/quizzes">
+              <Link href="/tutor/exercises">
                 <Card className="border-amber-200 bg-amber-50 hover:shadow-md transition-shadow cursor-pointer">
                   <CardContent className="py-4">
                     <div className="flex items-center gap-3">
@@ -188,9 +188,9 @@ export default async function TutorDashboard() {
               <p className="font-medium">Carica Materiali</p>
               <p className="text-sm text-gray-500">Aggiungi dispense e documenti</p>
             </Link>
-            <Link href="/tutor/quizzes" className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors">
-              <p className="font-medium">Gestisci Quiz</p>
-              <p className="text-sm text-gray-500">Crea quiz e rivedi risposte</p>
+            <Link href="/tutor/exercises" className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors">
+              <p className="font-medium">Gestisci Esercizi</p>
+              <p className="text-sm text-gray-500">Crea quiz, casi di studio e rivedi risposte</p>
             </Link>
             <Link href="/tutor/announcements" className="block p-3 rounded-lg border hover:bg-gray-50 transition-colors">
               <p className="font-medium">Bacheca Comunicazioni</p>

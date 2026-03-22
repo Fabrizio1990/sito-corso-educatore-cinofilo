@@ -80,8 +80,8 @@ export default async function QuizSubmissionsPage({ params }: PageProps) {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <Link href="/tutor/quizzes" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
-            ← Torna ai quiz
+          <Link href="/tutor/exercises" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+            ← Torna agli esercizi
           </Link>
           <h1 className="text-2xl md:text-3xl font-bold">{quiz.title}</h1>
           <p className="text-gray-600">{(quiz.courses as { name: string })?.name}</p>
@@ -245,8 +245,8 @@ export default async function QuizSubmissionsPage({ params }: PageProps) {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <Link href="/tutor/quizzes" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
-          ← Torna ai quiz
+        <Link href="/tutor/exercises" className="text-sm text-blue-600 hover:underline mb-2 inline-block">
+          ← Torna agli esercizi
         </Link>
         <div className="flex items-center gap-3">
           <h1 className="text-2xl md:text-3xl font-bold">{quiz.title}</h1>
